@@ -1,0 +1,15 @@
+
+# Checks if a number is prime
+is-prime number = {
+    when number < 2
+        return false
+
+    loop 2..<number with i
+        when remainder number, i = 0
+            return false
+
+    return true
+}
+
+write is-prime 117
+

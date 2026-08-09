@@ -1,0 +1,170 @@
+
+
+.markdown h3 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.markdown h4 {
+    font-size: 18px;
+    color: white;
+    margin-bottom: 6px;
+    margin-top: 32px;
+}
+
+.markdown p {
+    line-height: 1.5;
+    font-size: 16px;
+    color: #ffffffcc;
+}
+
+.markdown > p {
+    margin-bottom: 12px;
+}
+
+
+.markdown ul,
+.markdown ol {
+    padding-left: 32px;
+    margin-bottom: 24px;
+}
+
+.markdown li {
+    list-style: initial;
+    color: #ffffffcc;
+}
+
+.markdown li::marker {
+    color: white;
+}
+
+.markdown strong,
+.markdown em {
+    color: white;
+}
+
+.markdown code {
+    font-family: "JetBrains Mono", "Fira Code", "Roboto Mono", "Droid Sans Mono", monospace;
+    font-variant-ligatures: none;
+    font-feature-settings: "liga" 0, "calt" 0;
+    background-color: #656c7633;
+    padding: 2px 6px;
+    font-size: 14px;
+    color: white;
+
+}
+
+.markdown pre {
+    background-color: #191d28;
+    padding: 4px 8px;
+    overflow-x: auto;
+    margin-top: 8px;
+    margin-bottom: 24px;
+}
+
+.markdown pre code {
+    background: none;
+    color: #f8f8f2;
+    padding: 0;
+    border-radius: 0;
+}
+
+.markdown blockquote {
+    margin-top: 16px;
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    background-color: #1f242c;
+    border-left: 4px solid hsl(0, 0%, 58%);
+}
+
+.markdown blockquote :last-child {
+    margin-bottom: 0;
+}
+
+
+.markdown blockquote.note .title,
+.markdown blockquote.warning .title,
+.markdown blockquote.tip .title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.markdown blockquote.note {
+    border-left-color: hsl(215, 93%, 58%);
+}
+
+.markdown blockquote.note .title {
+    color: hsl(215, 93%, 58%);
+}
+
+.markdown blockquote.warning {
+    border-left-color: hsl(50, 93%, 58%);
+}
+
+.markdown blockquote.warning .title {
+    color: hsl(50, 93%, 58%);
+}
+
+.markdown blockquote.tip {
+    border-left-color: hsl(120, 93%, 58%);
+}
+
+.markdown blockquote.tip .title {
+    color: hsl(120, 93%, 58%);
+}
+
+.markdown table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow: auto;
+    font-variant: tabular-nums;
+    margin-bottom: 24px;
+}
+
+.markdown td,
+.markdown th {
+    padding: 0;
+}
+
+
+.markdown table th {
+    font-weight: 600;
+    background-color: #17191a;
+    white-space: nowrap;
+}
+
+.markdown table th,
+.markdown table td {
+    padding: 6px 13px;
+    border: 1px solid #3d444d;
+}
+
+.markdown table td > :last-child {
+    margin-bottom: 0;
+}
+
+.markdown table td code {
+    white-space: nowrap;
+}
+
+.markdown table tr {
+    border-top: 1px solid #3d444db3;
+    background-color: #151b23;
+}
+
+.markdown table img {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+
+
+
+
+
+
+

@@ -1,0 +1,8 @@
+.ace_gutter-cell {
+    padding-left: 4px;
+}
+
+/* Remove the shadow separating the gutter and the text editor */
+.ace_scroller.ace_scroll-left::after {
+    box-shadow: none !important;
+}

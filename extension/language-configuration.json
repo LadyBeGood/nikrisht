@@ -1,0 +1,62 @@
+{
+    "comments": {
+        "lineComment": "#",
+    },
+    "brackets": [
+        [
+            "[",
+            "]"
+        ],
+        [
+            "{",
+            "}"
+        ],
+        [
+            "(",
+            ")"
+        ]
+    ],
+    "autoClosingPairs": [
+        [
+            "(",
+            ")"
+        ],
+        [
+            "{",
+            "}"
+        ],
+        [
+            "[",
+            "]"
+        ],
+        {
+            "open": "\"",
+            "close": "\"",
+            "notIn": ["string"]
+        }
+    ],
+    "surroundingPairs": [
+        [
+            "[",
+            "]"
+        ],
+        [
+            "(",
+            ")"
+        ],
+        [
+            "\"",
+            "\""
+        ],
+        [
+            "{", "}"
+        ]
+    ],
+    "folding": {
+        "offSide": true,
+        "markers": {
+            "start": "^\\s*#region",
+            "end": "^\\s*#endregion"
+        }
+    }
+}

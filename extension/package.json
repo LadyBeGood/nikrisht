@@ -1,0 +1,72 @@
+{
+    "name": "utkrisht",
+    "displayName": "Utkrisht",
+    "description": "Official language support for the Utkrisht programming language.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/LadyBeGood/utkrisht"
+    },
+    "version": "0.0.1",
+    "icon": "./icon.jpg",
+    "publisher": "LadyBeGood",
+    "engines": {
+        "vscode": "^1.107.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "type": "module",
+    "activationEvents": [],
+    "main": "./src/main.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "utkrisht.run",
+                "title": "Run",
+                "icon": "$(run)"
+            }
+        ],
+        "languages": [
+            {
+                "id": "utkrisht",
+                "aliases": [
+                    "Utkrisht"
+                ],
+                "extensions": [
+                    ".uki"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "utkrisht",
+                "scopeName": "source.utkrisht",
+                "path": "./syntaxes/utkrisht.json"
+            }
+        ],
+        "menus": {
+            "editor/title": [
+                {
+                    "when": "resourceLangId == utkrisht",
+                    "command": "utkrisht.run",
+                    "group": "navigation"
+                }
+                
+            ]
+        }
+    },
+    "scripts": {
+        "lint": "eslint .",
+        "pretest": "npm run lint",
+        "test": "vscode-test"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.107.0",
+        "@types/mocha": "^10.0.10",
+        "@types/node": "22.x",
+        "eslint": "^9.36.0",
+        "@vscode/test-cli": "^0.0.11",
+        "@vscode/test-electron": "^2.5.2"
+    }
+}
