@@ -242,7 +242,7 @@ function parseIndexExpression(parser, object) {
 
     return { type: "IndexExpression", object, index, symbol };
 }
-
+ 
 /**
  * 
  * @param {Parser} parser Parser state. 
