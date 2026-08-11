@@ -5,7 +5,6 @@
 # Personal
 /demo
 language
-interpreter/parser.js
 interpreter/interpreter.js
 
 ### Nim ###

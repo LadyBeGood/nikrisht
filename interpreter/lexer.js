@@ -53,7 +53,7 @@ function isAtEnd(lexer) {
  * @param {Lexer} lexer Lexer state.
  * @returns {string | undefined} The current character, or `undefined` if the lexer is at EndOfFile.
  */
-function getCurrentCharacter(lexer) {
+function peek(lexer) {
     return lexer.source[lexer.current];
 }
 
@@ -63,7 +63,7 @@ function getCurrentCharacter(lexer) {
  * @param {Lexer} lexer Lexer state.
  * @returns {string | undefined} The consumed character, or `undefined` if the lexer is at EndOfFile.
  */
-function consumeCurrentCharacter(lexer) {
+function consume(lexer) {
     return lexer.source[lexer.current++];
 }
 
@@ -73,9 +73,9 @@ function consumeCurrentCharacter(lexer) {
  * 
  * @param {Lexer} lexer Lexer state.
  * @param {string} expected The exact character to match.
- * @returns {boolean}
+ * @returns {boolean} `true` if the current character matches one of the expected characters, otherwise `false`.
  */
-function isCurrentCharacter(lexer, expected) {
+function check(lexer, expected) {
     if (lexer.source[lexer.current] === expected) {
         return true;
     } else {
@@ -90,7 +90,7 @@ function isCurrentCharacter(lexer, expected) {
  * @param {string} expected Expected character.
  * @returns {boolean} True if the character matched and was consumed.
  */
-function matchCurrentCharacter(lexer, expected) {
+function match(lexer, expected) {
     if (lexer.source[lexer.current] != expected) {
         return false;
     } else {
@@ -151,7 +151,7 @@ function isIdentifierPart(character) {
  */
 function addToken(lexer, tokenType, literal) {
     lexer.tokens.push({ type: tokenType, literal, start: lexer.start, end: lexer.current });
-}    
+}
 
 
 
@@ -161,12 +161,12 @@ function addToken(lexer, tokenType, literal) {
  * @param {Lexer} lexer Lexer state 
  */
 function lexString(lexer) {
-    while (!isCurrentCharacter(lexer, '"')) {
-        if (isCurrentCharacter(lexer, "\n")) {
+    while (!check(lexer, '"')) {
+        if (check(lexer, "\n")) {
             lexer.line++
         }
 
-        consumeCurrentCharacter(lexer)
+        consume(lexer)
     }
 
     if (isAtEnd(lexer)) {
@@ -174,7 +174,7 @@ function lexString(lexer) {
     }
 
     // consume closing quote
-    consumeCurrentCharacter(lexer)
+    consume(lexer)
 
     // Skip the quotes for literal value
     const literal = lexer.source.slice(lexer.start + 1, lexer.current - 1)
@@ -186,19 +186,19 @@ function lexString(lexer) {
  * @param {Lexer} lexer 
  */
 function lexNumber(lexer) {
-    while (isDigit(getCurrentCharacter(lexer))) {
-        consumeCurrentCharacter(lexer);
+    while (isDigit(peek(lexer))) {
+        consume(lexer);
     }
 
-    if (isCurrentCharacter(lexer, ".")) {
-        consumeCurrentCharacter(lexer)
+    if (check(lexer, ".")) {
+        consume(lexer)
 
         if (isAtEnd(lexer)) {
             throw Error("Oihoi")
         }
 
-        while (isDigit(getCurrentCharacter(lexer))) {
-            consumeCurrentCharacter(lexer)
+        while (isDigit(peek(lexer))) {
+            consume(lexer)
         }
     }
 
@@ -211,8 +211,8 @@ function lexNumber(lexer) {
  * @param {Lexer} lexer 
  */
 function lexIdentifier(lexer) {
-    while (isIdentifierPart(getCurrentCharacter(lexer))) {
-        consumeCurrentCharacter(lexer);
+    while (isIdentifierPart(peek(lexer))) {
+        consume(lexer);
     }
 
     const lexeme = lexer.source.slice(lexer.start, lexer.current);
@@ -233,7 +233,7 @@ function lexIdentifier(lexer) {
  * @param {Lexer} lexer 
  */
 function lexToken(lexer) {
-    const character = consumeCurrentCharacter(lexer);
+    const character = consume(lexer);
 
     switch (character) {
         case "(":
@@ -258,7 +258,7 @@ function lexToken(lexer) {
             addToken(lexer, "Comma");
             break;
         case ".":
-            if (matchCurrentCharacter(lexer, ".")) {
+            if (match(lexer, ".")) {
                 addToken(lexer, "DotDot")
             } else {
                 addToken(lexer, "Dot")
@@ -280,28 +280,28 @@ function lexToken(lexer) {
             addToken(lexer, "Colon");
             break;
         case "!":
-            if (matchCurrentCharacter(lexer, "=")) {
+            if (match(lexer, "=")) {
                 addToken(lexer, "ExclamationMarkEqual")
             } else {
                 addToken(lexer, "ExclamationMark")
             }
             break;
         case "=": 
-            if (matchCurrentCharacter(lexer, "=")) {
+            if (match(lexer, "=")) {
                 addToken(lexer, "EqualEqual")
             } else {
                 addToken(lexer, "Equal")
             }
             break;
         case "<":
-            if (matchCurrentCharacter(lexer, "=")) {
+            if (match(lexer, "=")) {
                 addToken(lexer, "LessThanEqual")
             } else {
                 addToken(lexer, "LessThan")
             }
             break;
         case ">":
-            if (matchCurrentCharacter(lexer, ">")) {
+            if (match(lexer, ">")) {
                 addToken(lexer, "MoreThanEqual")
             } else {
                 addToken(lexer, "MoreThan")
@@ -315,7 +315,6 @@ function lexToken(lexer) {
         case "\t":
             break;
         case "\n":
-            addToken(lexer, "NewLine")
             lexer.line++
             break;
         case '"':
