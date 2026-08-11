@@ -150,7 +150,13 @@ function isIdentifierPart(character) {
  * @param {any} [literal] 
  */
 function addToken(lexer, tokenType, literal) {
-    lexer.tokens.push({ type: tokenType, literal, start: lexer.start, end: lexer.current });
+    lexer.tokens.push({ 
+        type: tokenType, 
+        literal, 
+        start: lexer.start, 
+        end: lexer.current,
+        lexeme: lexer.source.slice(lexer.start, lexer.current),
+    });
 }
 
 
@@ -343,7 +349,7 @@ export function lex(lexer) {
         lexToken(lexer)
     }
 
-    lexer.tokens.push({ type: "EndOfFile", start: lexer.start, end: lexer.current });
+    lexer.tokens.push({ type: "EndOfFile", start: lexer.start, end: lexer.current, lexeme: "" });
     return lexer.tokens;
 }
 

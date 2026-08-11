@@ -57,6 +57,7 @@
  * @property {any} [literal] The processed value.
  * @property {number} start Start character index in the source (inclusive).
  * @property {number} end End character index in the source (exclusive).
+ * @property {string} lexeme
  */
 
 
@@ -71,15 +72,26 @@
  * @property {number} line Line number, 1 based
  */
 
-
 /**
  * @typedef {Object} Parser
- * @property {string} source Source code being tokenized
  * @property {Token[]} tokens
  * @property {number} current
  * @property {*} diagnostics
  */
 
+/**
+ * @typedef {Object} Resolver
+ * @property {*} interpreter
+ * @property {Map<string, boolean>[]} scopes
+ * @property {number} functionDepth
+ * @property {number} loopDepth
+ * @property {*} diagnostics
+ */
+
+
+/*=============================*/
+/* Expressions                  */
+/*=============================*/
 /**
  * @typedef {object} LiteralExpression
  * @property {"LiteralExpression"} type
@@ -93,7 +105,7 @@
  * @typedef {Object} UnaryExpression
  * @property {"UnaryExpression"} type
  * @property {Token} operator
- * @property {Expression} right
+ * @property {Expression} expression
  */
 
 /**
@@ -171,6 +183,7 @@
 /**
  * @typedef {Object} FunctionExpression
  * @property {"FunctionExpression"} type
+ * @property {Token | undefined} name
  * @property {Token[]} parameters
  * @property {Statement} body
  */
@@ -230,7 +243,7 @@
  * @property {"FunctionDeclaration"} type
  * @property {Token} name
  * @property {Token[]} parameters
- * @property {Statement[]} body
+ * @property {Statement} body
  */
 
 /**
