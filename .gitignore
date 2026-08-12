@@ -5,7 +5,6 @@
 # Personal
 /demo
 language
-interpreter/interpreter.js
 
 ### Nim ###
 nimcache/

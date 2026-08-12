@@ -1,12 +1,13 @@
-
 // @ts-check
+
+import "./types.js";
 
 /**
  * 
  * @param {*} interpreter 
  * @returns {Resolver}
  */
-function createResolver(interpreter) {
+export function createResolver(interpreter) {
     return {
         diagnostics: [],
         interpreter,
@@ -68,7 +69,7 @@ function declare(resolver, name) {
         throw 0;
     }
 
-    scope.set(name.lexeme, true);
+    scope.set(name.lexeme, false);
 }
 
 /**
@@ -87,12 +88,12 @@ function define(resolver, name) {
 /**
  * 
  * @param {Resolver} resolver 
- * @param {{ name: Token }} expression 
+ * @param {{ name: Token }} node 
  */
-function resolveLocal(resolver, expression) {
+function resolveLocal(resolver, node) {
     for (let i = resolver.scopes.length - 1; i >= 0; i--) {
-        if (resolver.scopes[i].has(expression.name.lexeme)) {
-            resolver.interpreter.resolve(expression, resolver.scopes.length - 1 - i);
+        if (resolver.scopes[i].has(node.name.lexeme)) {
+            resolver.interpreter.resolve(node, resolver.scopes.length - 1 - i);
             return;
         }
     }
@@ -247,6 +248,7 @@ function resolveStatement(resolver, statement) {
 
             resolver.loopDepth--;
             endScope(resolver);
+            break;
         default:
             throw 0;
     }

@@ -49,16 +49,31 @@
  *          | "EndOfFile" } TokenType
  */
 
+
+/**
+ * @typedef {number | string | boolean | null} Literal
+ */
+
 /**
  * A token produced by the lexer.
  * 
  * @typedef {Object} Token
  * @property {TokenType} type The type of the token.
- * @property {any} [literal] The processed value.
+ * @property {Literal} [literal] The processed value.
  * @property {number} start Start character index in the source (inclusive).
  * @property {number} end End character index in the source (exclusive).
  * @property {string} lexeme
  */
+
+
+/**
+ * @typedef {Object} Environment
+ * @property {Environment | undefined} enclosing
+ * @property {Map<String, Literal>} values
+ */
+
+
+
 
 
 /**
@@ -88,17 +103,23 @@
  * @property {*} diagnostics
  */
 
+/**
+ * @typedef {Object} Interpreter
+ * @property {Environment} globals
+ * @property {Environment} environment
+ * @property {Map<Expression, number>} locals
+ * @property {*} diagnostics
+ */
+
 
 /*=============================*/
-/* Expressions                  */
+/* Expressions                 */
 /*=============================*/
+
 /**
  * @typedef {object} LiteralExpression
  * @property {"LiteralExpression"} type
- * @property { string
- *           | number 
- *           | boolean 
- *           | null } value
+ * @property {Literal} value
  */
 
 /**
@@ -209,7 +230,7 @@
 
 
 /*=============================*/
-/* STATEMENTS                  */
+/* Statements                  */
 /*=============================*/
 
 /**
@@ -307,3 +328,53 @@
  *          | ExpressionStatement } Statement
  */
 
+
+
+/*=============================*/
+/* Values                      */
+/*=============================*/
+
+
+/**
+ * @typedef {number} _Number 
+ */
+
+/**
+ * @typedef {string} _String
+ */
+
+/**
+ * @typedef {boolean} _Boolean
+ */
+
+/**
+ * @typedef {null} _Null
+ */
+
+/**
+ * @typedef {_Type[]} _Array
+ */
+
+/**
+ * @typedef {Map<_Type, _Type>} _Object
+ */
+
+/**
+ * @typedef {Object} _Function
+ * @property {number} arity
+ * @property {(interpreter: Interpreter, args: _Type[]) => _Type} call
+ */
+
+/**
+ * @typedef { _String
+ *          | _Number 
+ *          | _Boolean
+ *          | _Array
+ *          | _Object
+ *          | _Function
+ *          | _Null } _Type
+ */
+
+/**
+ * @typedef {"null" | "array" | "object" | "function" | "string" | "number" | "boolean"} _TypeNames
+ */
