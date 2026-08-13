@@ -69,7 +69,7 @@
 /**
  * @typedef {Object} Environment
  * @property {Environment | undefined} enclosing
- * @property {Map<String, Literal>} values
+ * @property {Map<string, {value: _Type, reassignable: boolean}>} values
  */
 
 
@@ -362,6 +362,8 @@
 /**
  * @typedef {Object} _Function
  * @property {number} arity
+ * @property {Environment} [closure]
+ * @property {FunctionDeclaration | FunctionExpression} [declaration]
  * @property {(interpreter: Interpreter, args: _Type[]) => _Type} call
  */
 
