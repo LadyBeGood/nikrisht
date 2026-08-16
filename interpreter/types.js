@@ -106,6 +106,7 @@
 
 /**
  * @typedef {Object} Evaluator
+ * @property {Statement[]} statements
  * @property {Environment} globals
  * @property {Environment} environment
  * @property {Map<Expression, number>} locals

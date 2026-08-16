@@ -1,8 +1,9 @@
 // @ts-check
 
 import "../types.js";
-import { evaluateBlock } from "../phases/evaluator";
+import { evaluateStatement } from "../phases/evaluator";
 import { createEnvironment, declare } from "./environment";
+import { ReturnSignal } from "./signals.js";
 
 
 /**
@@ -25,7 +26,18 @@ export function createFunction(declaration, closure) {
                 declare(environment, declaration.parameters[i].lexeme, args[i]);
             }
 
-            return evaluateBlock(evaluator, declaration.body, environment);
+            try {
+                evaluateStatement(evaluator, declaration.body);
+            } catch (thrown) {
+                if (thrown instanceof ReturnSignal) {
+                    return thrown.value;
+                } else {
+                    throw thrown;
+                }
+            }
+
+            // A function that does not return anything, returns null.
+            return null;
         },
     };
 }

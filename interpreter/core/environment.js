@@ -30,15 +30,15 @@ export function declare(environment, name, value, reassignable = true) {
 /**
  *  
  * @param {Environment} environment 
- * @param {Token} name 
+ * @param {string} name 
  * @param {_Type} value 
  */
 export function assign(environment, name, value) {
-    const varInfo = environment.values.get(name.lexeme);
+    const varInfo = environment.values.get(name);
 
     if (varInfo !== undefined) {
         if (!varInfo.reassignable) {
-            throw new Error(`Cannot assign to constant '${name.lexeme}'`);
+            throw new Error(`Cannot assign to constant '${name}'`);
         }
 
         varInfo.value = value;
@@ -50,7 +50,7 @@ export function assign(environment, name, value) {
         return;
     }
 
-    throw new Error(`Undefined variable '${name.lexeme}'`);
+    throw new Error(`Undefined variable '${name}'`);
 }
 
 
@@ -58,11 +58,22 @@ export function assign(environment, name, value) {
  * 
  * @param {Environment} environment 
  * @param {number} distance 
- * @param {Token} name 
+ * @param {string} name 
  * @param {_Type} value 
  */
 export function assignAt(environment, distance, name, value) {
-    ancestor(environment, distance).values.set(name.lexeme, value);
+    const varInfo = (ancestor(environment, distance).values.get(name));
+    
+    if (varInfo === undefined) {
+        throw 0; // this will never happen, only here for stupid typescript
+    }
+    
+    if (!varInfo.reassignable) {
+        throw "BRO THIS IS A CONSTANT BRO";
+
+    }
+
+    varInfo.value = value;
 }
 
 
@@ -70,11 +81,11 @@ export function assignAt(environment, distance, name, value) {
  * Resolves a variable by searching the environment chain.
  * 
  * @param {Environment} environment 
- * @param {Token} name 
+ * @param {string} name 
  * @returns {_Type}
  */
 export function lookup(environment, name) {
-    const varInfo = environment.values.get(name.lexeme);
+    const varInfo = environment.values.get(name);
 
     if (varInfo !== undefined) {
         return varInfo.value;
@@ -84,7 +95,7 @@ export function lookup(environment, name) {
         return lookup(environment.enclosing, name);
     }
 
-    throw new Error(`Undefined variable "${name.lexeme}"`);
+    throw new Error(`Undefined variable "${name}"`);
 }
 
 /**
@@ -95,7 +106,7 @@ export function lookup(environment, name) {
  * @returns {_Type}
  */
 export function lookupAt(environment, distance, name) {
-    return /** @type {_Type} */ (ancestor(environment, distance).values.get(name));
+    return /** @type {{ value: _Type; reassignable: boolean; }} */ (ancestor(environment, distance).values.get(name)).value;
 }
 
 /**
