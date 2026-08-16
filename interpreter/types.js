@@ -185,7 +185,7 @@
 /**
  * @typedef {Object} IndexedAssignmentExpression
  * @property {"IndexedAssignmentExpression"} type
- * @property {Expression} left 
+ * @property {IndexExpression} left
  * @property {Expression} value 
  */
 

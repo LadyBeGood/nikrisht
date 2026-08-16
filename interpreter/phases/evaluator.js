@@ -246,28 +246,174 @@ function evaluateExpression(evaluator, expression) {
         }
 
         case "UnaryExpression": {
-            const expr = evaluateExpression(evaluator, expression.expression);
+            const operand = evaluateExpression(evaluator, expression.expression);
 
             switch (expression.operator.type) {
                 case "Minus":
-                    if (!is_Number(expr)) {
+                    if (!is_Number(operand)) {
                         throw 0;
                     } else {
-                        return -expr;
+                        return -operand;
                     }
                 case "ExclamationMark":
-                    if (!is_Boolean(expr)) {
+                    if (!is_Boolean(operand)) {
                         throw 0;
                     } else {
-                        throw !expr;
+                        throw !operand;
                     }
                 default:
                     throw 1;
             }
         }
         case "BinaryExpression": {
-            
+            const left = evaluateExpression(evaluator, expression.left);
+            const right = evaluateExpression(evaluator, expression.left);
+
+            switch (expression.operator.type) {
+                case "Equal":
+                    return left === right;
+                case "ExclamationMarkEqual":
+                    return left !== right;
+                case "Plus":
+                    if (is_Number(left)) {
+                        if (is_Number(right)) {
+                            return left + right;
+                        }
+
+                        throw 0;
+                    } else if (is_String(left)) {
+                        if (is_String(right)) {
+                            return left + right;
+                        }
+
+                        throw 0;
+                    } 
+
+                    throw 0;
+            }
+
+            if (!is_Number(left) || !is_Number(right)) {
+                throw 0;
+            }
+
+            switch (expression.operator.type) {
+                case "Minus": return left - right;
+                case "Slash": return left / right;
+                case "Asterisk": return left * right;
+                case "MoreThan": return left > right;
+                case "LessThan": return left < right;
+                case "MoreThanEqual": return left >= right;
+                case "LessThanEqual": return left <= right;
+                default: throw 0;
+            }
         }
+
+        case "CallExpression": {
+            const callee = evaluateExpression(evaluator, expression.callee);
+            if (!is_Function(callee)) {
+                throw 0;
+            }
+
+            const args = [];
+
+            for (const argument of expression.arguments) {
+                args.push(evaluateExpression(evaluator, argument));
+            }
+
+            if (args.length != callee.arity) {
+                throw 0;
+            }
+
+            return callee.call(evaluator, args);
+        }
+
+        case "FunctionExpression":
+            return createFunction(expression, evaluator.environment);
+        
+        case "IndexExpression": {
+            const subject = evaluateExpression(evaluator, expression.object);
+            const index = evaluateExpression(evaluator, expression.index);
+
+            if (is_Array(subject) || is_String(subject)) {
+                if (!is_Number(index)) {
+                    throw 0;
+                }
+
+                if (index < 1 || index > subject.length) {
+                    throw 0;
+                }
+
+                return subject[index - 1];
+            } else if (is_Object(subject)) {
+                const value = subject.get(index);
+
+                if (value === undefined) {
+                    throw 0;
+                }
+
+                return value;
+            }
+
+            throw 0;
+        }
+        
+        case "IndexedAssignmentExpression": {
+            const subject = evaluateExpression(evaluator, expression.left.object);
+            const index = evaluateExpression(evaluator, expression.left.index);
+
+            if (is_Array(subject)) {
+                if (!is_Number(index)) {
+                    throw 0;
+                }
+
+                if (index < 1 || index > subject.length) {
+                    throw 0;
+                }
+
+                const value = evaluateExpression(evaluator, expression.value);
+                subject[index - 1] = value;
+                return value;
+            } else if (is_Object(subject)) {
+                const value = evaluateExpression(evaluator, expression.value);
+                subject.set(index, value);
+                return value;
+            }
+
+            throw 0;
+        }
+
+        case "LogicalExpression": {
+            const left = evaluateExpression(evaluator, expression.left);
+            
+            if (!is_Boolean(left)) {
+                throw 0;
+            }
+
+            switch (expression.operator.type) {
+                case "And":
+                    // false & anything -> short-circuit to false
+                    if (left === false) return false;
+                    break;
+
+                case "Bar":
+                    // true | anything -> short-circuit to true
+                    if (left === true) return true;
+                    break;
+
+                default:
+                    /** @type {never} */
+                    throw 0;
+            }
+
+            const right = evaluateExpression(evaluator, expression.right);
+
+            if (!is_Boolean(right)) {
+                throw 0;
+            }
+
+            return right;
+        }
+
 
         default:
             throw 0;
