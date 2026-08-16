@@ -1,6 +1,6 @@
 // @ts-check
 
-import "./types.js";
+import "../types.js";
 
 /**
  * Creates a new parser state.
@@ -144,7 +144,7 @@ function parsePrimaryExpression(parser) {
         return { type: "LiteralExpression", value: null };
     }
     else if (check(parser, "NumericLiteral", "StringLiteral")) {
-        return { type: "LiteralExpression", value: consume(parser).literal };
+        return { type: "LiteralExpression", value: /** @type {Literal} */ (consume(parser).literal) };
     }
     else if (check(parser, "Identifier")) {
         return { type: "VariableExpression", name: consume(parser) };

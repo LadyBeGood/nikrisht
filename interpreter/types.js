@@ -96,6 +96,7 @@
 
 /**
  * @typedef {Object} Resolver
+ * @property {Statement[]} statements
  * @property {*} interpreter
  * @property {Map<string, boolean>[]} scopes
  * @property {number} functionDepth
@@ -104,7 +105,7 @@
  */
 
 /**
- * @typedef {Object} Interpreter
+ * @typedef {Object} Evaluator
  * @property {Environment} globals
  * @property {Environment} environment
  * @property {Map<Expression, number>} locals
@@ -364,7 +365,7 @@
  * @property {number} arity
  * @property {Environment} [closure]
  * @property {FunctionDeclaration | FunctionExpression} [declaration]
- * @property {(interpreter: Interpreter, args: _Type[]) => _Type} call
+ * @property {(interpreter: Evaluator, args: _Type[]) => _Type} call
  */
 
 /**

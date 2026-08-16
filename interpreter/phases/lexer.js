@@ -1,6 +1,7 @@
 // @ts-check
 
-import "./types.js";
+import "../types.js";
+import { keywords } from "../core/keywords.js";
 
 
 /**
@@ -18,24 +19,6 @@ export function createLexer(source) {
         line: 0,
     }
 }
-
-const keywords = new Set([
-    "if", 
-    "else",
-    "loop",
-    "with",
-    "exit",
-    "skip",
-    "true",
-    "false",
-    "null",
-    "func",
-    "return",
-    "var",
-    "const",
-])
-
-
 
 /**
  * Check whether the lexer has reached the end of the source code.

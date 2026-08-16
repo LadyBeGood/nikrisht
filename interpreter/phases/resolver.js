@@ -1,14 +1,16 @@
 // @ts-check
 
-import "./types.js";
+import "../types.js";
 
 /**
  * 
  * @param {*} interpreter 
+ * @param {Statement[]} statements 
  * @returns {Resolver}
  */
-export function createResolver(interpreter) {
+export function createResolver(interpreter, statements) {
     return {
+        statements,
         diagnostics: [],
         interpreter,
         scopes: [],
@@ -199,7 +201,7 @@ function resolveStatement(resolver, statement) {
     switch (statement.type) {
         case "BlockStatement":
             beginScope(resolver);
-            resolve(resolver, statement.statements)
+            resolveStatements(resolver, statement.statements)
             endScope(resolver);
             break;
         case "ExpressionStatement":
@@ -254,14 +256,22 @@ function resolveStatement(resolver, statement) {
     }
 }
 
+/**
+ * 
+ * @param {Resolver} resolver 
+ * @param {Statement[]} statements 
+ */
+function resolveStatements(resolver, statements) {
+    for (const statement of statements) {
+        resolveStatement(resolver, statement);
+    }
+}
+
 
 /**
  * 
  * @param {Resolver} resolver 
- * @param {Statement[]} statements
  */
-function resolve(resolver, statements) {
-	for (const statement of statements) {
-        resolveStatement(resolver, statement);
-    }
+export function resolve(resolver) {
+	resolveStatements(resolver, resolver.statements);
 }
