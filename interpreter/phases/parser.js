@@ -1,7 +1,7 @@
 // @ts-check
 
-import { getLexeme, getLiteral } from "../core/token.js";
 import "../types.js";
+import { getLexeme, getLiteral } from "../core/token.js";
 
 /**
  * Creates a new parser state.
@@ -134,46 +134,53 @@ function match(parser, ...expected) {
  * @returns {Expression}
  */
 function parsePrimaryExpression(parser) {
-    if (match(parser, "False")) {
-        return { type: "LiteralExpression", value: false };
+    if (check(parser, "False")) {
+        const token = consume(parser);
+        return { type: "LiteralExpression", value: false, start: token.start, end: token.end };
     }
-    else if (match(parser, "True")) {
-        return { type: "LiteralExpression", value: true };
+    else if (check(parser, "True")) {
+        const token = consume(parser);
+        return { type: "LiteralExpression", value: true, start: token.start, end: token.end };
     }
-    else if (match(parser, "Null")) {
-        return { type: "LiteralExpression", value: null };
+    else if (check(parser, "Null")) {
+        const token = consume(parser);
+        return { type: "LiteralExpression", value: null, start: token.start, end: token.end };
     }
     else if (check(parser, "NumericLiteral", "StringLiteral")) {
-        return { type: "LiteralExpression", value: getLiteral(parser.interpreter, consume(parser)) };
+        const token = consume(parser);
+        return { type: "LiteralExpression", value: getLiteral(parser.interpreter, token), start: token.start, end: token.end };
     }
     else if (check(parser, "Identifier")) {
-        return { type: "VariableExpression", name: consume(parser) };
+        const token = consume(parser);
+        return { type: "VariableExpression", name: token, start: token.start, end: token.end };
     }
-    else if (match(parser, "LeftRoundBracket")) {
+    else if (check(parser, "LeftRoundBracket")) {
+        const start = consume(parser).start;
         const expression = parseExpression(parser);
-        consume(parser, "RightRoundBracket", "Expected ')' after expression")
-        return { type: "GroupingExpression", expression }
+        const end = consume(parser, "RightRoundBracket", "Expected ')' after expression").end;
+        return { type: "GroupingExpression", expression, start, end }
     }
-    else if (match(parser, "LeftSquareBracket")) {
-        const items = [];
+    else if (check(parser, "LeftSquareBracket")) {
+        const start = consume(parser).start;
+        const elements = [];
 
-        if (!match(parser, "RightSquareBracket")) {
+        if (!check(parser, "RightSquareBracket")) {
             do {
-                items.push(parseExpression(parser));
+                elements.push(parseExpression(parser));
             } while (match(parser, "Comma") && !check(parser, "RightSquareBracket"));
-
-            consume(parser, "RightSquareBracket", "Expected ']' after array literal.");
         }
 
-        return { type: "ArrayExpression", items };
+        const end = consume(parser, "RightSquareBracket", "Expected ']' after array literal.").end;
+
+        return { type: "ArrayExpression", elements, start, end };
     }
     else if (check(parser, "LeftCurlyBracket")) {
-        const openingCurlyBracket = consume(parser)
+        const start = consume(parser).start;
 
         const keys = [];
         const values = [];
 
-        if (!match(parser, "RightCurlyBracket")) {
+        if (!check(parser, "RightCurlyBracket")) {
             do {
                 keys.push(parseExpression(parser));
 
@@ -181,13 +188,14 @@ function parsePrimaryExpression(parser) {
 
                 values.push(parseExpression(parser));
             } while (match(parser, "Comma") && !check(parser, "RightCurlyBracket"));
-
-            consume(parser, "RightCurlyBracket", "Expected '}' after object literal.");
         }
 
-        return { type: "ObjectExpression", openingCurlyBracket, keys, values };
+        const end = consume(parser, "RightCurlyBracket", "Expected '}' after object literal.").end;
+
+        return { type: "ObjectExpression", keys, values, start, end };
     }
-    else if (match(parser, "Func")) {
+    else if (check(parser, "Func")) {
+        const start = consume(parser).start;
         let name;
         if (check(parser, "Identifier")) {
             name = consume(parser);
@@ -210,11 +218,12 @@ function parsePrimaryExpression(parser) {
         if (check(parser, "LeftCurlyBracket")) {
             body = parseBlockStatement(parser);
         } else {
+            const expression = parseExpression(parser);
             /** @type {ReturnStatement} */
-            body = ({ type: "ReturnStatement", expression: parseExpression(parser) });
+            body = ({ type: "ReturnStatement", expression, start: expression.start, end: expression.end });
         }
 
-        return { type: "FunctionExpression", name, parameters, body };
+        return { type: "FunctionExpression", name, parameters, body, start, end: body.end };
     }
     else {
         throw "Expected expression."
@@ -228,20 +237,22 @@ function parsePrimaryExpression(parser) {
  * @param {Expression} object 
  * @returns {Expression}
  */
-function parseIndexExpression(parser, object) {
-    let index;
-    let symbol;
+function parseMemberExpression(parser, object) {
+    let property;
+    let end;
 
     if (match(parser, "LeftSquareBracket")) {
-        index = parseExpression(parser);
-        symbol = consume(parser, "RightSquareBracket", "Expected ']' after index.");
+        property = parseExpression(parser);
+        end = consume(parser, "RightSquareBracket", "Expected ']' after index.").end;
     } else {
-        symbol = consume(parser, "Dot");
+        consume(parser, "Dot");
+        const identifier = consume(parser, "Identifier");
+        end = identifier.end;
         /** @type {LiteralExpression} */
-        index = ({ type: "LiteralExpression", value: getLexeme(parser.interpreter, consume(parser, "Identifier")) });
+        property = ({ type: "LiteralExpression", value: getLexeme(parser.interpreter, identifier), start: identifier.start, end: identifier.end });
     }
 
-    return { type: "IndexExpression", object, index, symbol };
+    return { type: "MemberExpression", object, property, start: object.start, end };
 }
 
 /**
@@ -251,17 +262,17 @@ function parseIndexExpression(parser, object) {
  * @returns {Expression}
  */
 function parseCallExpression(parser, callee) {
-    const arguments_ = [];
+    const args = [];
 
     if (!check(parser, "RightRoundBracket")) {
         do {
-            arguments_.push(parseExpression(parser));
+            args.push(parseExpression(parser));
         } while (match(parser, "Comma"));
     }
 
-    const closingRoundBracket = consume(parser, "RightRoundBracket", "Expected ')' after arguments");
+    const end = consume(parser, "RightRoundBracket", "Expected ')' after arguments").end;
 
-    return { type: "CallExpression", callee, arguments: arguments_, closingRoundBracket };
+    return { type: "CallExpression", callee, arguments: args, start: callee.start, end };
 }
 
 
@@ -277,7 +288,7 @@ function parsePostfixExpression(parser) {
         if (match(parser, "LeftRoundBracket")) {
             expression = parseCallExpression(parser, expression);
         } else if (check(parser, "LeftSquareBracket", "Dot")) {
-            expression = parseIndexExpression(parser, expression);
+            expression = parseMemberExpression(parser, expression);
         } else {
             break;
         }
@@ -295,8 +306,8 @@ function parsePostfixExpression(parser) {
 function parseUnaryExpression(parser) {
     if (check(parser, "ExclamationMark", "Minus")) {
         const operator = consume(parser);
-        const expression = parseUnaryExpression(parser);
-        return { type: "UnaryExpression", argument: expression, operator };
+        const argument = parseUnaryExpression(parser);
+        return { type: "UnaryExpression", argument, operator, start: operator.start, end: argument.end };
     }
 
     return parsePostfixExpression(parser);
@@ -313,9 +324,10 @@ function parseMultiplicationAndDivisionExpression(parser) {
     let expression = parseUnaryExpression(parser);
 
     while (check(parser, "Slash", "Asterisk")) {
-        const operator = consume(parser)
-        const right = parseUnaryExpression(parser)
-        expression = { type: "BinaryExpression", left: expression, right, operator };
+        const operator = consume(parser);
+        const right = parseUnaryExpression(parser);
+
+        expression = { type: "BinaryExpression", left: expression, right, operator, start: expression.start, end: right.end };
     }
 
     return expression;
@@ -330,9 +342,10 @@ function parseAdditionAndSubstractionExpression(parser) {
     let expression = parseMultiplicationAndDivisionExpression(parser);
 
     while (check(parser, "Minus", "Plus")) {
-        const operator = consume(parser)
-        const right = parseMultiplicationAndDivisionExpression(parser)
-        expression = { type: "BinaryExpression", left: expression, right, operator };
+        const operator = consume(parser);
+        const right = parseMultiplicationAndDivisionExpression(parser);
+
+        expression = { type: "BinaryExpression", left: expression, right, operator, start: expression.start, end: right.end };
     }
 
     return expression;
@@ -350,7 +363,7 @@ function parseComparisonExpression(parser) {
         const operator = consume(parser);
         const right = parseAdditionAndSubstractionExpression(parser);
 
-        expression = { type: "BinaryExpression", left: expression, right, operator };
+        expression = { type: "BinaryExpression", left: expression, right, operator, start: expression.start, end: right.end };
     }
 
     return expression;
@@ -368,7 +381,7 @@ function parseEqualityAndInequalityExpression(parser) {
         const operator = consume(parser);
         const right = parseComparisonExpression(parser);
 
-        expression = { type: "BinaryExpression", left: expression, right, operator };
+        expression = { type: "BinaryExpression", left: expression, right, operator, start: expression.start, end: right.end };
     }
 
     return expression;
@@ -387,7 +400,7 @@ function parseLogicalAndExpression(parser) {
         const operator = consume(parser);
         const right = parseEqualityAndInequalityExpression(parser);
 
-        expression = { type: "LogicalExpression", left: expression, right, operator };
+        expression = { type: "LogicalExpression", left: expression, right, operator, start: expression.start, end: right.end };
     }
 
     return expression;
@@ -406,7 +419,7 @@ function parseLogicalOrExpression(parser) {
         const operator = consume(parser);
         const right = parseLogicalAndExpression(parser);
 
-        expression = { type: "LogicalExpression", left: expression, right: right, operator }
+        expression = { type: "LogicalExpression", left: expression, right: right, operator, start: expression.start, end: right.end };
     }
 
     return expression
@@ -423,21 +436,12 @@ function parseLogicalOrExpression(parser) {
  * @param {Parser} parser Parser state. 
  * @returns {Expression}
  */
-function parseAssignment(parser) {
+function parseAssignmentExpression(parser) {
     const expression = parseLogicalOrExpression(parser)
 
     if (check(parser, "Equal")) {
-        // const equals = consume(parser); used in throw here
-        const value = parseAssignment(parser);
-
-        switch (expression.type) {
-            case "VariableExpression":
-                return { type: "AssignmentExpression", name: expression.name, value };
-            case "IndexExpression":
-                return { type: "IndexedAssignmentExpression", left: expression, value };
-        }
-
-        throw "Invalid assignment target";
+        const right = parseAssignmentExpression(parser);
+        return { type: "AssignmentExpression", left: expression, right, start: expression.start, end: right.end };
     }
 
     return expression
@@ -455,7 +459,7 @@ function parseAssignment(parser) {
  * @returns {Expression}
  */
 function parseExpression(parser) {
-    return parseAssignment(parser);
+    return parseAssignmentExpression(parser);
 }
 
 
@@ -471,8 +475,8 @@ function parseExpression(parser) {
  */
 function parseExpressionStatement(parser) {
     const expression = parseExpression(parser);
-    consume(parser, "Semicolon", "Expected ';' after statement.");
-    return { type: "ExpressionStatement", expression };
+    const end = consume(parser, "Semicolon", "Expected ';' after statement.").end;
+    return { type: "ExpressionStatement", expression, start: expression.start, end };
 }
 
 
@@ -488,6 +492,8 @@ function parseExpressionStatement(parser) {
  * @returns {Statement} `IfStatement`
  */
 function parseIfStatement(parser) {
+    const start = consume(parser).start;
+
     consume(parser, "LeftRoundBracket", "Expected '(' after 'if'");
 
     const condition = parseExpression(parser);
@@ -501,7 +507,9 @@ function parseIfStatement(parser) {
         elseBranch = parseStatement(parser);
     }
 
-    return { type: "IfStatement", condition, thenBranch, elseBranch };
+    const end = elseBranch?.end ?? thenBranch.end;
+
+    return { type: "IfStatement", condition, thenBranch, elseBranch, start, end };
 }
 
 
@@ -521,12 +529,17 @@ function parseBinding(parser) {
     let index;
     let value;
 
+    let start;
+    let end;
+
     // with i
     if (check(parser, "Identifier")) {
         value = consume(parser);
+        start = value.start;
+        end = value.end;
     } else {
         // with [i, value]
-        consume(parser, "LeftSquareBracket", "Expected '[' after 'with'");
+        start = consume(parser, "LeftSquareBracket", "Expected '[' after 'with'").start;
 
         index = consume(parser, "Identifier", "Expected index variable name");
 
@@ -534,10 +547,10 @@ function parseBinding(parser) {
             value = consume(parser, "Identifier", "Expected value variable name");
         }
 
-        consume(parser, "RightSquareBracket", "Expected ']' after loop variables");
+        end = consume(parser, "RightSquareBracket", "Expected ']' after loop variables").end;
     }
 
-    return { type: "Binding", index, value };
+    return { type: "Binding", index, value, start, end };
 }
 
 /**
@@ -551,6 +564,8 @@ function parseBinding(parser) {
  * @returns {Statement} `LoopStatement`
  */
 function parseLoopStatement(parser) {
+    const start = consume(parser).start;
+
     let iterable;
     let binding;
 
@@ -567,7 +582,7 @@ function parseLoopStatement(parser) {
 
     const body = parseStatement(parser);
 
-    return { type: "LoopStatement", iterable, binding, body };
+    return { type: "LoopStatement", iterable, binding, body, start, end: body.end };
 }
 
 /**
@@ -583,11 +598,11 @@ function parseLoopStatement(parser) {
  */
 function parseExitOrSkipStatement(parser) {
     const isExit = check(parser, "Exit");
-    const keyword = consume(parser);
+    const start = consume(parser).start;
 
-    consume(parser, "Semicolon", "Expected ';' after statement.");
+    const end = consume(parser, "Semicolon", "Expected ';' after statement.").end;
 
-    return { type: isExit ? "ExitStatement" : "SkipStatement", keyword };
+    return { type: isExit ? "ExitStatement" : "SkipStatement", start, end };
 }
 
 
@@ -602,15 +617,15 @@ function parseExitOrSkipStatement(parser) {
  * @returns {Statement} `ReturnStatement`
  */
 function parseReturnStatement(parser) {
-    const keyword = consume(parser);
+    const start = consume(parser).start;
 
     let expression;
     if (!check(parser, "Semicolon")) {
         expression = parseExpression(parser);
     }
+    const end = consume(parser, "Semicolon", "Expected ';' after statement.").end;
 
-    consume(parser, "Semicolon", "Expected ';' after statement.")
-    return { type: "ReturnStatement", keyword, expression }
+    return { type: "ReturnStatement", expression, start, end }
 }
 
 
@@ -625,7 +640,7 @@ function parseReturnStatement(parser) {
  * @returns {Statement} `BlockStatement`.
  */
 function parseBlockStatement(parser) {
-    consume(parser, "LeftCurlyBracket", "Expected '{'");
+    const start = consume(parser, "LeftCurlyBracket", "Expected '{'").start;
 
     const statements = [];
 
@@ -633,9 +648,9 @@ function parseBlockStatement(parser) {
         statements.push(parseDeclaration(parser));
     }
 
-    consume(parser, "RightCurlyBracket", "Expected '}' after block");
+    const end = consume(parser, "RightCurlyBracket", "Expected '}' after block").end;
 
-    return { type: "BlockStatement", statements };
+    return { type: "BlockStatement", body: statements, start, end };
 }
 
 
@@ -658,11 +673,11 @@ function parseBlockStatement(parser) {
  * @returns {Statement}
  */
 function parseStatement(parser) {
-    if (match(parser, "If")) {
+    if (check(parser, "If")) {
         return parseIfStatement(parser)
     }
 
-    else if (match(parser, "Loop")) {
+    else if (check(parser, "Loop")) {
         return parseLoopStatement(parser)
     }
 
@@ -674,7 +689,6 @@ function parseStatement(parser) {
         return parseReturnStatement(parser)
     }
 
-    // TODO: Maybe add lookahead for objects
     else if (check(parser, "LeftCurlyBracket")) {
         return parseBlockStatement(parser)
     }
@@ -697,14 +711,15 @@ function parseStatement(parser) {
  * @returns {Statement} `VariableDeclaration`.
  */
 function parseVariableDeclaration(parser) {
+    const start = consume(parser).start;
     const name = consume(parser, "Identifier", "Expected variable name.");
     let initialiser;
 
     if (match(parser, "Equal")) initialiser = parseExpression(parser);
 
-    consume(parser, "Semicolon", "Expected ';' after variable declaration.");
+    const end = consume(parser, "Semicolon", "Expected ';' after variable declaration.").end;
 
-    return { type: "VariableDeclaration", name, initialiser };
+    return { type: "VariableDeclaration", name, initialiser, start, end };
 }
 
 /**
@@ -718,15 +733,16 @@ function parseVariableDeclaration(parser) {
  * @returns {Statement} `ConstantDeclaration`.
  */
 function parseConstantDeclaration(parser) {
+    const start = consume(parser).start;
     const name = consume(parser, "Identifier", "Expected constant name.");
 
     consume(parser, "Equal", "Constants must be initialised.");
 
     const initialiser = parseExpression(parser);
 
-    consume(parser, "Semicolon", "Expected ';' after constant declaration.");
+    const end = consume(parser, "Semicolon", "Expected ';' after constant declaration.").end;
 
-    return { type: "ConstantDeclaration", name, initialiser };
+    return { type: "ConstantDeclaration", name, initialiser, start, end };
 }
 
 
@@ -741,6 +757,7 @@ function parseConstantDeclaration(parser) {
  * @returns {Statement} `FunctionDeclaration`.
  */
 function parseFunctionDeclaration(parser) {
+    const start = consume(parser).start;
     const name = consume(parser, "Identifier", "Expected function name.");
 
     consume(parser, "LeftRoundBracket", "Expected '(' after function name");
@@ -759,11 +776,12 @@ function parseFunctionDeclaration(parser) {
     if (check(parser, "LeftCurlyBracket")) {
         body = parseBlockStatement(parser);
     } else {
+        const expression = parseExpression(parser);
         /** @type {ReturnStatement} */
-        body = ({ type: "ReturnStatement", expression: parseExpression(parser) });
+        body = ({ type: "ReturnStatement", expression, start: expression.start, end: expression.end });
     }
 
-    return { type: "FunctionDeclaration", name, parameters, body };
+    return { type: "FunctionDeclaration", name, parameters, body, start, end: body.end };
 }
 
 
@@ -782,13 +800,19 @@ function parseFunctionDeclaration(parser) {
  * @returns {Statement}
  */
 function parseDeclaration(parser) {
-    if (match(parser, "Var")) {
+    if (check(parser, "Var")) {
         return parseVariableDeclaration(parser);
-    } else if (match(parser, "Const")) {
+    } 
+    
+    else if (check(parser, "Const")) {
         return parseConstantDeclaration(parser);
-    } else if (check(parser, "Func")) {
+    } 
+    
+    else if (check(parser, "Func")) {
         return parseFunctionDeclaration(parser);
-    } else {
+    } 
+    
+    else {
         return parseStatement(parser);
     }
 }
@@ -806,8 +830,6 @@ function parseDeclaration(parser) {
  */
 export function parse(parser) {
     while (!isAtEnd(parser)) {
-        if (!match(parser, "NewLine")) {
-            parser.interpreter.statements.push(parseDeclaration(parser));
-        }
+        parser.interpreter.statements.push(parseDeclaration(parser));
     }
 }

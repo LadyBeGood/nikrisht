@@ -168,9 +168,9 @@ function resolveExpression(resolver, expression) {
                 resolveExpression(resolver, argument);
             }
             break;
-        case "IndexExpression":
+        case "MemberExpression":
             resolveExpression(resolver, expression.object);
-            resolveExpression(resolver, expression.index);
+            resolveExpression(resolver, expression.property);
             break;
         case "ArrayExpression":
             for (const item of expression.items) {
@@ -200,7 +200,7 @@ function resolveStatement(resolver, statement) {
     switch (statement.type) {
         case "BlockStatement":
             beginScope(resolver);
-            resolveStatements(resolver, statement.statements)
+            resolveStatements(resolver, statement.body)
             endScope(resolver);
             break;
         case "ExpressionStatement":

@@ -158,7 +158,7 @@
 /**
  * @typedef {Object} UnaryExpression
  * @property {"UnaryExpression"} type
- * @property {string} operator
+ * @property {Token} operator
  * @property {Expression} argument
  * @property {number} start
  * @property {number} end
@@ -176,7 +176,7 @@
  * @typedef {Object} BinaryExpression
  * @property {"BinaryExpression"} type
  * @property {Expression} left
- * @property {string} operator
+ * @property {Token} operator
  * @property {Expression} right
  * @property {number} start
  * @property {number} end
@@ -186,7 +186,7 @@
  * @typedef {Object} LogicalExpression
  * @property {"LogicalExpression"} type
  * @property {Expression} left
- * @property {string} operator
+ * @property {Token} operator
  * @property {Expression} right
  * @property {number} start
  * @property {number} end
@@ -204,7 +204,7 @@
 /**
  * @typedef {Object} VariableExpression
  * @property {"VariableExpression"} type
- * @property {string} name
+ * @property {Token} name
  * @property {number} start
  * @property {number} end
  */
@@ -212,31 +212,27 @@
 /**
  * @typedef {Object} AssignmentExpression
  * @property {"AssignmentExpression"} type
- * @property {string} name
- * @property {Expression} value 
+ * @property {Expression} left
+ * @property {Expression} right 
  * @property {number} start
  * @property {number} end
  */
 
 /**
- * @typedef {Object} IndexExpression
- * @property {"IndexExpression"} type
+ * @typedef {Object} MemberExpression
+ * @property {"MemberExpression"} type
  * @property {Expression} object 
- * @property {Expression} index 
- * @property {Token} symbol
- */
-
-/**
- * @typedef {Object} IndexedAssignmentExpression
- * @property {"IndexedAssignmentExpression"} type
- * @property {IndexExpression} left
- * @property {Expression} value 
+ * @property {Expression} property 
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} ArrayExpression
  * @property {"ArrayExpression"} type
- * @property {Expression[]} items 
+ * @property {Expression[]} elements 
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
@@ -244,7 +240,8 @@
  * @property {"ObjectExpression"} type
  * @property {Expression[]} keys
  * @property {Expression[]} values
- * @property {Token} openingCurlyBracket
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
@@ -253,6 +250,8 @@
  * @property {Token | undefined} name
  * @property {Token[]} parameters
  * @property {Statement} body
+ * @property {number} start
+ * @property {number} end
  */
 
 
@@ -265,8 +264,7 @@
  *          | CallExpression
  *          | VariableExpression
  *          | AssignmentExpression
- *          | IndexExpression
- *          | IndexedAssignmentExpression
+ *          | MemberExpression
  *          | ArrayExpression
  *          | ObjectExpression
  *          | FunctionExpression
@@ -282,20 +280,19 @@
 /**
  * @typedef {Object} BlockStatement
  * @property {"BlockStatement"} type
- * @property {Statement[]} statements
+ * @property {Statement[]} body
+ * @property {number} start
+ * @property {number} end
  */
 
-/**
- * @typedef {object} Parameter
- * @property {Expression} name
- * @property {Expression | undefined} defaultValue
- */
 
 /**
  * @typedef {Object} VariableDeclaration
  * @property {"VariableDeclaration"} type
  * @property {Token} name
  * @property {Expression | undefined} initialiser
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
@@ -303,6 +300,8 @@
  * @property {"ConstantDeclaration"} type
  * @property {Token} name
  * @property {Expression} initialiser
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
@@ -311,25 +310,30 @@
  * @property {Token} name
  * @property {Token[]} parameters
  * @property {Statement} body
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} ReturnStatement
  * @property {"ReturnStatement"} type
- * @property {Token} keyword
  * @property {Expression | undefined} expression
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} ExitStatement
  * @property {"ExitStatement"} type
- * @property {Token} keyword
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} SkipStatement
  * @property {"SkipStatement"} type
- * @property {Token} keyword
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
@@ -338,6 +342,8 @@
  * @property {Expression} condition
  * @property {Statement} thenBranch
  * @property {Statement | undefined} elseBranch
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
@@ -345,6 +351,8 @@
  * @property {"Binding"} type
  * @property {Token | undefined} index
  * @property {Token | undefined} value
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
@@ -353,12 +361,16 @@
  * @property {Expression | undefined} iterable
  * @property {Binding | undefined} binding
  * @property {Statement} body
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} ExpressionStatement
  * @property {"ExpressionStatement"} type
  * @property {Expression} expression
+ * @property {number} start
+ * @property {number} end
  */
 
 /**

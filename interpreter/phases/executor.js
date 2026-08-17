@@ -329,9 +329,9 @@ function executeExpression(executor, expression) {
         case "FunctionExpression":
             return createFunction(expression, executor.environment);
 
-        case "IndexExpression": {
+        case "MemberExpression": {
             const subject = executeExpression(executor, expression.object);
-            const index = executeExpression(executor, expression.index);
+            const index = executeExpression(executor, expression.property);
 
             if (is_Array(subject) || is_String(subject)) {
                 if (!is_Number(index)) {
@@ -358,7 +358,7 @@ function executeExpression(executor, expression) {
 
         case "IndexedAssignmentExpression": {
             const subject = executeExpression(executor, expression.left.object);
-            const index = executeExpression(executor, expression.left.index);
+            const index = executeExpression(executor, expression.left.property);
 
             if (is_Array(subject)) {
                 if (!is_Number(index)) {
@@ -458,7 +458,7 @@ export function executeStatement(executor, statement) {
             try {
                 executor.environment = createEnvironment(executor.environment);
 
-                for (const stmt of statement.statements) {
+                for (const stmt of statement.body) {
                     executeStatement(executor, stmt);
                 }
 
