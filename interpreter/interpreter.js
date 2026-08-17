@@ -10,10 +10,12 @@ import { createExecutor, execute } from "./phases/executor.js";
  * Creates an `Interpreter` object
  * 
  * @param {string} source 
+ * @param {Host} host 
  * @returns {Interpreter} Interpreter state
  */
-export function createInterpreter(source) {
+export function createInterpreter(source, host) {
     return {
+        host,
         source,
         tokens: [],
         statements: [],
@@ -29,7 +31,7 @@ export function createInterpreter(source) {
  * @returns {boolean}
  */
 function hasErrors(interpreter) {
-    return interpreter.diagnostics.some(diagnostic => diagnostic.severity === "error");
+    return interpreter.diagnostics.some(diagnostic => diagnostic.type === "error");
 }
 
 

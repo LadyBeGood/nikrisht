@@ -146,16 +146,14 @@ function resolveExpression(resolver, expression) {
             resolveFunction(resolver, expression);
             break;
         case "GroupingExpression":
+            resolveExpression(resolver, expression.expression);
+            break;
         case "UnaryExpression":
             resolveExpression(resolver, expression.argument);
             break;
         case "AssignmentExpression":
-            resolveExpression(resolver, expression.value);
-            resolveLocal(resolver, expression, getLexeme(resolver.interpreter, expression.name));
-            break;
-        case "IndexedAssignmentExpression":
             resolveExpression(resolver, expression.left);
-            resolveExpression(resolver, expression.value);
+            resolveExpression(resolver, expression.right);
             break;
         case "BinaryExpression":
         case "LogicalExpression":
@@ -173,7 +171,7 @@ function resolveExpression(resolver, expression) {
             resolveExpression(resolver, expression.property);
             break;
         case "ArrayExpression":
-            for (const item of expression.items) {
+            for (const item of expression.elements) {
                 resolveExpression(resolver, item);
             }
             break;

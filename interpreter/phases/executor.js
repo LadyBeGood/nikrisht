@@ -208,24 +208,52 @@ function executeExpression(executor, expression) {
         }
 
         case "AssignmentExpression": {
-            const name = getLexeme(executor.interpreter, expression.name);
-            const value = executeExpression(executor, expression);
-            const distance = executor.interpreter.locals.get(expression);
+            if (expression.left.type === "VariableExpression") {
+                const name = getLexeme(executor.interpreter, expression.left.name);
+                const value = executeExpression(executor, expression);
+                const distance = executor.interpreter.locals.get(expression);
+    
+                if (distance !== undefined) {
+                    assignAt(executor.environment, distance, name, value);
+                } else {
+                    assign(executor.environment, name, value);
+                }
+    
+                return value;
+            } else if (expression.left.type === "MemberExpression") {
+                const subject = executeExpression(executor, expression.left.object);
+                const index = executeExpression(executor, expression.left.property);
 
-            if (distance !== undefined) {
-                assignAt(executor.environment, distance, name, value);
-            } else {
-                assign(executor.environment, name, value);
+                if (is_Array(subject)) {
+                    if (!is_Number(index)) {
+                        throw 0;
+                    }
+
+                    if (index < 1 || index > subject.length) {
+                        throw 0;
+                    }
+
+                    const value = executeExpression(executor, expression.right);
+                    subject[index - 1] = value;
+                    return value;
+                } else if (is_Object(subject)) {
+                    const value = executeExpression(executor, expression.right);
+                    subject.set(index, value);
+                    return value;
+                }
+
+                throw 0;
             }
 
-            return value;
+            throw 0;
         }
+
 
         case "ArrayExpression": {
             const array = [];
 
-            for (let i = 0; i < expression.items.length; i++) {
-                const item = executeExpression(executor, expression.items[i]);
+            for (let i = 0; i < expression.elements.length; i++) {
+                const item = executeExpression(executor, expression.elements[i]);
                 array.push(item);
             }
 
@@ -350,31 +378,6 @@ function executeExpression(executor, expression) {
                     throw 0;
                 }
 
-                return value;
-            }
-
-            throw 0;
-        }
-
-        case "IndexedAssignmentExpression": {
-            const subject = executeExpression(executor, expression.left.object);
-            const index = executeExpression(executor, expression.left.property);
-
-            if (is_Array(subject)) {
-                if (!is_Number(index)) {
-                    throw 0;
-                }
-
-                if (index < 1 || index > subject.length) {
-                    throw 0;
-                }
-
-                const value = executeExpression(executor, expression.value);
-                subject[index - 1] = value;
-                return value;
-            } else if (is_Object(subject)) {
-                const value = executeExpression(executor, expression.value);
-                subject.set(index, value);
                 return value;
             }
 

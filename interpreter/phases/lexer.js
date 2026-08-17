@@ -2,6 +2,8 @@
 
 import "../types.js";
 import { keywords } from "../core/keywords.js";
+import { LexingError } from "../diagnostics/errors.js";
+import { report as diagnosticReport } from "../diagnostics/report.js";
 
 
 /**
@@ -15,7 +17,6 @@ export function createLexer(interpreter) {
         interpreter,
         start: 0,
         current: 0,
-        line: 0,
     }
 }
 
@@ -139,7 +140,18 @@ function addToken(lexer, tokenType) {
 }
 
 
-
+/**
+ * This function is here only because writing `{ start: lexer.start, end: lexer.current }` at every call is
+ * wasteful. Other phases don't have any similar helper function like this, for they have their start and
+ * end range in their nodes themselves.
+ * 
+ * @param {Lexer} lexer 
+ * @param {DiagnosticDefinition} definition 
+ * @param {...*} args 
+ */
+function report(lexer, definition, ...args) {
+    diagnosticReport(lexer.interpreter, { start: lexer.start, end: lexer.current }, definition, ...args);
+}
 
 /**
  * 
@@ -147,10 +159,6 @@ function addToken(lexer, tokenType) {
  */
 function lexString(lexer) {
     while (!check(lexer, '"')) {
-        if (check(lexer, "\n")) {
-            lexer.line++
-        }
-
         consume(lexer)
     }
 
@@ -161,7 +169,6 @@ function lexString(lexer) {
     // consume closing quote
     consume(lexer)
 
-    // Skip the quotes for literal value
     addToken(lexer, "StringLiteral")
 }
 
@@ -296,9 +303,8 @@ function lexToken(lexer) {
         case " ":
         case "\r":
         case "\t":
-            break;
         case "\n":
-            lexer.line++
+            // Skip whitespace
             break;
         case '"':
             lexString(lexer);
@@ -322,7 +328,17 @@ function lexToken(lexer) {
 export function lex(lexer) {
     while (!isAtEnd(lexer)) {
         lexer.start = lexer.current;
-        lexToken(lexer)
+
+        try {
+            lexToken(lexer);
+        } catch (error) {
+            if (error instanceof LexingError) {
+                lexer.current++;
+                continue;
+            }
+
+            throw error; 
+        }
     }
 
     lexer.interpreter.tokens.push({ type: "EndOfFile", start: lexer.start, end: lexer.current });

@@ -10,6 +10,7 @@
  * the original source.
  * 
  * @typedef {Object} Interpreter
+ * @property {Host} host
  * @property {string} source Raw source code being interpreted.
  * @property {Token[]} tokens Tokens produced by the lexer phase.
  * @property {Statement[]} statements Abstract syntax tree produced by the parser phase.
@@ -18,6 +19,10 @@
  * @property {boolean} success True if no diagnostics with severity level "error" were reported
  */
 
+
+/**
+ * @typedef {"node" | "browser"} Host
+ */
 
 /*=========================================*/
 /* Phases                                  */
@@ -30,7 +35,6 @@
  * @property {Interpreter} interpreter Shared interpreter state.
  * @property {number} start Start index of the current lexeme.
  * @property {number} current Current character index in the source.
- * @property {number} line Line number, 1 based.
  */
 
 /**
@@ -142,6 +146,16 @@
  * @property {number} startColumn
  * @property {number} endColumn
  */
+
+/**
+ * Named so to have symmetry with `SourceRange`.
+ * 
+ * @typedef {Object} SourceSpan
+ * @property {number} start
+ * @property {number} end
+ */
+
+
 
 /*=========================================*/
 /* Expressions                             */
@@ -453,15 +467,25 @@
 
 
 /*=========================================*/
-/* Diagnostic                              */
+/* Error handling                          */
 /*=========================================*/
 
 /**
  * @typedef {Object} Diagnostic
- * @property {"error" | "warning" | "information"} severity
- * @property {string} code
- * @property {string} message
- * @property {number} line
- * @property {number} column
- * @property {number} [length]   
+ * @property {"error" | "warning" | "information"} type
+ * @property {number} code
+ * @property {string} phase
+ * @property {string} message Fully formatted message, placeholders already substituted
+ * @property {number} startLine 
+ * @property {number} startColumn
+ * @property {number} endLine
+ * @property {number} endColumn
  */
+
+/**
+ * @typedef {Object} DiagnosticDefinition
+ * @property {"error" | "warning" | "information"} type
+ * @property {number} code
+ * @property {string} template Unformatted message with placeholders.
+ */
+

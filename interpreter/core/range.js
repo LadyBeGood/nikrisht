@@ -5,19 +5,18 @@
  *
  * @param {string} source
  * @param {number} offset
- * @param {number} [base=1] Line/column numbering base — use 1 for
- *   diagnostics/CLI output, 0 for editors like Ace that expect 0-based
- *   rows/columns.
+ * @param {number} startingLine
+ * @param {number} startingColumn
  * @returns {{ line: number, column: number }}
  */
-function getLineAndColumn(source, offset, base = 1) {
-    let line = base;
-    let column = base;
+function getLineAndColumn(source, offset, startingLine, startingColumn) {
+    let line = startingLine;
+    let column = startingColumn;
 
     for (let i = 0; i < offset; i++) {
         if (source[i] === "\n") {
             line++;
-            column = base;
+            column = startingColumn;
         } else {
             column++;
         }
@@ -31,14 +30,14 @@ function getLineAndColumn(source, offset, base = 1) {
  * or editor integrations.
  *
  * @param {Interpreter} interpreter
- * @param {Token | Statement} node
- * @param {number} [startingLine] 
- * @param {number} [startingColumn] 
+ * @param {SourceSpan} node
+ * @param {number} startingLine
+ * @param {number} startingColumn
  * @returns {SourceRange}
  */
-export function getRange(interpreter, node, startingLine = 1, startingColumn = 0) {
-    const { line: startLine, column: startColumn } = getLineAndColumn(interpreter.source, node.start, base);
-    const { line: endLine, column: endColumn } = getLineAndColumn(interpreter.source, node.end, base);
+export function getRange(interpreter, node, startingLine, startingColumn) {
+    const { line: startLine, column: startColumn } = getLineAndColumn(interpreter.source, node.start, startingLine, startingColumn);
+    const { line: endLine, column: endColumn } = getLineAndColumn(interpreter.source, node.end, startingLine, startingColumn);
 
     return { startLine, startColumn, endLine, endColumn };
 }
