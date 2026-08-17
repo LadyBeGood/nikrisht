@@ -1,5 +1,70 @@
 // @ts-check
 
+/*=========================================*/
+/* Interpreter                             */
+/*=========================================*/
+
+/**
+ * Interpreter state. Shared across all phases (lexer, parser, resolver,
+ * executor) so they can report diagnostics into one place and access
+ * the original source.
+ * 
+ * @typedef {Object} Interpreter
+ * @property {string} source Raw source code being interpreted.
+ * @property {Token[]} tokens Tokens produced by the lexer phase.
+ * @property {Statement[]} statements Abstract syntax tree produced by the parser phase.
+ * @property {Diagnostic[]} diagnostics Errors/warnings/information collected across all phases.
+ * @property {boolean} success True if no diagnostics with severity level "error" were reported
+ */
+
+
+/*=========================================*/
+/* Phases                                  */
+/*=========================================*/
+
+/**
+ * Lexer state.
+ * 
+ * @typedef {Object} Lexer
+ * @property {Interpreter} interpreter Shared interpreter state.
+ * @property {number} start Start index of the current lexeme.
+ * @property {number} current Current character index in the source.
+ * @property {number} line Line number, 1 based.
+ */
+
+/**
+ * Parser state.
+ * 
+ * @typedef {Object} Parser
+ * @property {Interpreter} interpreter
+ * @property {number} current
+ */
+
+/**
+ * Resolver state.
+ * 
+ * @typedef {Object} Resolver
+ * @property {Interpreter} interpreter
+ * @property {Map<string, boolean>[]} scopes
+ * @property {number} functionDepth
+ * @property {number} loopDepth
+ */
+
+/**
+ * Executor state.
+ * 
+ * @typedef {Object} Executor
+ * @property {Interpreter} interpreter
+ * @property {Environment} globals
+ * @property {Environment} environment
+ * @property {Map<Expression, number>} locals
+ */
+
+
+
+/*=========================================*/
+/* Tokens                                  */
+/*=========================================*/
 
 /**
  * @typedef { "LeftRoundBracket"
@@ -66,57 +131,10 @@
  */
 
 
-/**
- * @typedef {Object} Environment
- * @property {Environment | undefined} enclosing
- * @property {Map<string, {value: _Type, reassignable: boolean}>} values
- */
 
-
-
-
-
-/**
- * Lexer state
- * 
- * @typedef {Object} Lexer
- * @property {string} source Source code being tokenized
- * @property {Token[]} tokens Tokens produced by the lexer
- * @property {number} start Start index of the current lexeme
- * @property {number} current Current character index in the source
- * @property {number} line Line number, 1 based
- */
-
-/**
- * @typedef {Object} Parser
- * @property {Token[]} tokens
- * @property {number} current
- * @property {*} diagnostics
- */
-
-/**
- * @typedef {Object} Resolver
- * @property {Statement[]} statements
- * @property {*} interpreter
- * @property {Map<string, boolean>[]} scopes
- * @property {number} functionDepth
- * @property {number} loopDepth
- * @property {*} diagnostics
- */
-
-/**
- * @typedef {Object} Evaluator
- * @property {Statement[]} statements
- * @property {Environment} globals
- * @property {Environment} environment
- * @property {Map<Expression, number>} locals
- * @property {*} diagnostics
- */
-
-
-/*=============================*/
-/* Expressions                 */
-/*=============================*/
+/*=========================================*/
+/* Expressions                             */
+/*=========================================*/
 
 /**
  * @typedef {object} LiteralExpression
@@ -231,9 +249,9 @@
 
 
 
-/*=============================*/
-/* Statements                  */
-/*=============================*/
+/*=========================================*/
+/* Statements                              */
+/*=========================================*/
 
 /**
  * @typedef {Object} BlockStatement
@@ -332,42 +350,53 @@
 
 
 
-/*=============================*/
-/* Values                      */
-/*=============================*/
+/*=========================================*/
+/* Environment                             */
+/*=========================================*/
 
+/**
+ * @typedef {Object} Environment
+ * @property {Environment | undefined} enclosing
+ * @property {Map<string, {value: _Type, reassignable: boolean}>} values
+ */
+
+
+
+/*=========================================*/
+/* Values                                  */
+/*=========================================*/
 
 /**
  * @typedef {number} _Number 
- */
+*/
 
 /**
  * @typedef {string} _String
- */
+*/
 
 /**
  * @typedef {boolean} _Boolean
- */
+*/
 
 /**
  * @typedef {null} _Null
- */
+*/
 
 /**
  * @typedef {_Type[]} _Array
- */
+*/
 
 /**
  * @typedef {Map<_Type, _Type>} _Object
- */
+*/
 
 /**
  * @typedef {Object} _Function
  * @property {number} arity
  * @property {Environment} [closure]
  * @property {FunctionDeclaration | FunctionExpression} [declaration]
- * @property {(interpreter: Evaluator, args: _Type[]) => _Type} call
- */
+ * @property {(interpreter: Executor, args: _Type[]) => _Type} call
+*/
 
 /**
  * @typedef { _String
@@ -377,8 +406,24 @@
  *          | _Object
  *          | _Function
  *          | _Null } _Type
- */
+*/
 
 /**
  * @typedef {"null" | "array" | "object" | "function" | "string" | "number" | "boolean"} _TypeNames
+*/
+
+
+
+/*=========================================*/
+/* Diagnostic                              */
+/*=========================================*/
+
+/**
+ * @typedef {Object} Diagnostic
+ * @property {"error" | "warning" | "information"} severity
+ * @property {string} code
+ * @property {string} message
+ * @property {number} line
+ * @property {number} column
+ * @property {number} [length]   
  */

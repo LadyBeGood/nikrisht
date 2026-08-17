@@ -13,9 +13,9 @@ import { ExitSignal, ReturnSignal, SkipSignal } from "../core/signals.js";
 /**
  * 
  * @param {Statement[]} statements 
- * @returns {Evaluator}
+ * @returns {Executor}
  */
-export function createEvaluator(statements) {
+export function createExecutor(statements) {
     const globals = createEnvironment();
 
     for (const [name, fn] of Object.entries(natives)) {
@@ -38,17 +38,17 @@ export function createEvaluator(statements) {
 
 /**
  * 
- * @param {Evaluator} evaluator 
+ * @param {Executor} executor 
  * @param {Environment} environment 
  * @param {Statement} body 
  * @returns {boolean}
  */
-function evaluateLoopBody(evaluator, environment, body) {
-    const previous = evaluator.environment;
+function executeLoopBody(executor, environment, body) {
+    const previous = executor.environment;
 
     try {
-        evaluator.environment = environment;
-        evaluateStatement(evaluator, body);
+        executor.environment = environment;
+        executeStatement(executor, body);
         return false;
     } catch (thrown) {
         if (thrown instanceof ExitSignal) {
@@ -59,26 +59,26 @@ function evaluateLoopBody(evaluator, environment, body) {
             throw thrown;
         }
     } finally {
-        evaluator.environment = previous;
+        executor.environment = previous;
     }
 }
 
 /**
  * 
- * @param {Evaluator} evaluator 
+ * @param {Executor} executor 
  * @param {LoopStatement} statement 
  */
-function evaluateLoopStatement(evaluator, statement) {
+function executeLoopStatement(executor, statement) {
     // loop
     if (statement.iterable === undefined) {
         while (true) {
-            if (evaluateLoopBody(evaluator, evaluator.environment, statement.body)) break;
+            if (executeLoopBody(executor, executor.environment, statement.body)) break;
         }
 
         return;
     }
 
-    const iterable = evaluateExpression(evaluator, statement.iterable);
+    const iterable = executeExpression(executor, statement.iterable);
 
     // loop number with value
     if (is_Number(iterable)) {
@@ -88,13 +88,13 @@ function evaluateLoopStatement(evaluator, statement) {
 
         // 1-based counting, end inclusive
         for (let i = 1; i <= iterable; i++) {
-            const environment = createEnvironment(evaluator.environment);
+            const environment = createEnvironment(executor.environment);
 
             if (statement.binding?.value !== undefined) {
                 declare(environment, statement.binding.value.lexeme, i);
             }
 
-            if (evaluateLoopBody(evaluator, evaluator.environment, statement.body)) break;
+            if (executeLoopBody(executor, executor.environment, statement.body)) break;
         }
     }
 
@@ -104,8 +104,8 @@ function evaluateLoopStatement(evaluator, statement) {
             throw new Error("Boolean loops do not support bindings");
         }
 
-        while (evaluateExpression(evaluator, statement.iterable) === true) {
-            if (evaluateLoopBody(evaluator, evaluator.environment, statement.body)) break;
+        while (executeExpression(executor, statement.iterable) === true) {
+            if (executeLoopBody(executor, executor.environment, statement.body)) break;
         }
     }
 
@@ -119,7 +119,7 @@ function evaluateLoopStatement(evaluator, statement) {
     // loop array/string with index, value
     else if (is_Array(iterable) || is_String(iterable)) {
         for (let i = 0; i < iterable.length; i++) {
-            const environment = createEnvironment(evaluator.environment);
+            const environment = createEnvironment(executor.environment);
 
             if (statement.binding?.index !== undefined) {
                 // 1-based index
@@ -130,14 +130,14 @@ function evaluateLoopStatement(evaluator, statement) {
                 declare(environment, statement.binding.value.lexeme, iterable[i]);
             }
 
-            if (evaluateLoopBody(evaluator, evaluator.environment, statement.body)) break;
+            if (executeLoopBody(executor, executor.environment, statement.body)) break;
         }
     }
 
     // loop object with key, value
     else if (is_Object(iterable)) {
         for (const [key, value] of iterable) {
-            const environment = createEnvironment(evaluator.environment);
+            const environment = createEnvironment(executor.environment);
 
             if (statement.binding?.index !== undefined) {
                 // key binding
@@ -149,7 +149,7 @@ function evaluateLoopStatement(evaluator, statement) {
                 declare(environment, statement.binding.value.lexeme, value);
             }
 
-            if (evaluateLoopBody(evaluator, evaluator.environment, statement.body)) break;
+            if (executeLoopBody(executor, executor.environment, statement.body)) break;
         }
     }
 
@@ -160,20 +160,20 @@ function evaluateLoopStatement(evaluator, statement) {
         }
 
         while (true) {
-            const value = iterable.call(evaluator, []);
+            const value = iterable.call(executor, []);
 
             // returning null ends the iteration
             if (value === null) {
                 break;
             }
 
-            const environment = createEnvironment(evaluator.environment);
+            const environment = createEnvironment(executor.environment);
 
             if (statement.binding?.value !== undefined) {
                 declare(environment, statement.binding.value.lexeme, value);
             }
 
-            if (evaluateLoopBody(evaluator, evaluator.environment, statement.body)) break;
+            if (executeLoopBody(executor, executor.environment, statement.body)) break;
         }
     }
 
@@ -185,38 +185,38 @@ function evaluateLoopStatement(evaluator, statement) {
 
 /**
  * 
- * @param {Evaluator} evaluator 
+ * @param {Executor} executor 
  * @param {Expression} expression 
  * @returns {_Type}
  */
-function evaluateExpression(evaluator, expression) {
+function executeExpression(executor, expression) {
     switch (expression.type) {
         case "LiteralExpression":
             return expression.value;
 
         case "GroupingExpression":
-            return evaluateExpression(evaluator, expression.expression);
+            return executeExpression(executor, expression.expression);
 
         case "VariableExpression": {
             const name = expression.name.lexeme;
-            const distance = evaluator.locals.get(expression);
+            const distance = executor.locals.get(expression);
 
             if (distance !== undefined) {
-                return lookupAt(evaluator.environment, distance, name);
+                return lookupAt(executor.environment, distance, name);
             } else {
-                return lookup(evaluator.globals, name);
+                return lookup(executor.globals, name);
             }
         }
 
         case "AssignmentExpression": {
             const name = expression.name.lexeme;
-            const value = evaluateExpression(evaluator, expression);
-            const distance = evaluator.locals.get(expression);
+            const value = executeExpression(executor, expression);
+            const distance = executor.locals.get(expression);
 
             if (distance !== undefined) {
-                assignAt(evaluator.environment, distance, name, value);
+                assignAt(executor.environment, distance, name, value);
             } else {
-                assign(evaluator.environment, name, value);
+                assign(executor.environment, name, value);
             }
             
             return value;
@@ -226,7 +226,7 @@ function evaluateExpression(evaluator, expression) {
             const array = [];
 
             for (let i = 0; i < expression.items.length; i++) {
-                const item = evaluateExpression(evaluator, expression.items[i]);
+                const item = executeExpression(executor, expression.items[i]);
                 array.push(item);
             }
 
@@ -237,8 +237,8 @@ function evaluateExpression(evaluator, expression) {
             const object = new Map();
 
             for (let i = 0; i < expression.keys.length; i++) {
-                const key = evaluateExpression(evaluator, expression.keys[i]);
-                const value = evaluateExpression(evaluator, expression.values[i]);
+                const key = executeExpression(executor, expression.keys[i]);
+                const value = executeExpression(executor, expression.values[i]);
                 object.set(key,  value);
             }
 
@@ -246,7 +246,7 @@ function evaluateExpression(evaluator, expression) {
         }
 
         case "UnaryExpression": {
-            const operand = evaluateExpression(evaluator, expression.expression);
+            const operand = executeExpression(executor, expression.expression);
 
             switch (expression.operator.type) {
                 case "Minus":
@@ -266,8 +266,8 @@ function evaluateExpression(evaluator, expression) {
             }
         }
         case "BinaryExpression": {
-            const left = evaluateExpression(evaluator, expression.left);
-            const right = evaluateExpression(evaluator, expression.left);
+            const left = executeExpression(executor, expression.left);
+            const right = executeExpression(executor, expression.left);
 
             switch (expression.operator.type) {
                 case "Equal":
@@ -309,7 +309,7 @@ function evaluateExpression(evaluator, expression) {
         }
 
         case "CallExpression": {
-            const callee = evaluateExpression(evaluator, expression.callee);
+            const callee = executeExpression(executor, expression.callee);
             if (!is_Function(callee)) {
                 throw 0;
             }
@@ -317,22 +317,22 @@ function evaluateExpression(evaluator, expression) {
             const args = [];
 
             for (const argument of expression.arguments) {
-                args.push(evaluateExpression(evaluator, argument));
+                args.push(executeExpression(executor, argument));
             }
 
             if (args.length != callee.arity) {
                 throw 0;
             }
 
-            return callee.call(evaluator, args);
+            return callee.call(executor, args);
         }
 
         case "FunctionExpression":
-            return createFunction(expression, evaluator.environment);
+            return createFunction(expression, executor.environment);
         
         case "IndexExpression": {
-            const subject = evaluateExpression(evaluator, expression.object);
-            const index = evaluateExpression(evaluator, expression.index);
+            const subject = executeExpression(executor, expression.object);
+            const index = executeExpression(executor, expression.index);
 
             if (is_Array(subject) || is_String(subject)) {
                 if (!is_Number(index)) {
@@ -358,8 +358,8 @@ function evaluateExpression(evaluator, expression) {
         }
         
         case "IndexedAssignmentExpression": {
-            const subject = evaluateExpression(evaluator, expression.left.object);
-            const index = evaluateExpression(evaluator, expression.left.index);
+            const subject = executeExpression(executor, expression.left.object);
+            const index = executeExpression(executor, expression.left.index);
 
             if (is_Array(subject)) {
                 if (!is_Number(index)) {
@@ -370,11 +370,11 @@ function evaluateExpression(evaluator, expression) {
                     throw 0;
                 }
 
-                const value = evaluateExpression(evaluator, expression.value);
+                const value = executeExpression(executor, expression.value);
                 subject[index - 1] = value;
                 return value;
             } else if (is_Object(subject)) {
-                const value = evaluateExpression(evaluator, expression.value);
+                const value = executeExpression(executor, expression.value);
                 subject.set(index, value);
                 return value;
             }
@@ -383,7 +383,7 @@ function evaluateExpression(evaluator, expression) {
         }
 
         case "LogicalExpression": {
-            const left = evaluateExpression(evaluator, expression.left);
+            const left = executeExpression(executor, expression.left);
             
             if (!is_Boolean(left)) {
                 throw 0;
@@ -405,7 +405,7 @@ function evaluateExpression(evaluator, expression) {
                     throw 0;
             }
 
-            const right = evaluateExpression(evaluator, expression.right);
+            const right = executeExpression(executor, expression.right);
 
             if (!is_Boolean(right)) {
                 throw 0;
@@ -422,65 +422,65 @@ function evaluateExpression(evaluator, expression) {
 
 /**
  * 
- * @param {Evaluator} evaluator 
+ * @param {Executor} executor 
  * @param {Statement} statement 
  */
-export function evaluateStatement(evaluator, statement) {
+export function executeStatement(executor, statement) {
     switch (statement.type) {
         case "ExpressionStatement":
-            evaluateExpression(evaluator, statement.expression);
+            executeExpression(executor, statement.expression);
             break;
 
         case "VariableDeclaration": {
             const value = statement.initialiser !== undefined
-                ? evaluateExpression(evaluator, statement.initialiser)
+                ? executeExpression(executor, statement.initialiser)
                 : null;
 
-            declare(evaluator.environment, statement.name.lexeme, value);
+            declare(executor.environment, statement.name.lexeme, value);
             break;
         }
 
         case "ConstantDeclaration": {
-            const value = evaluateExpression(evaluator, statement.initialiser);
-            declare(evaluator.environment, statement.name.lexeme, value, /* reassignable */ false);
+            const value = executeExpression(executor, statement.initialiser);
+            declare(executor.environment, statement.name.lexeme, value, /* reassignable */ false);
             break;
         }
 
         case "FunctionDeclaration": {
-            const fn = createFunction(statement, evaluator.environment);
+            const fn = createFunction(statement, executor.environment);
 
-            declare(evaluator.environment, statement.name.lexeme, fn);
+            declare(executor.environment, statement.name.lexeme, fn);
             break;
         }
 
         case "BlockStatement": {
-            const previous = evaluator.environment;
+            const previous = executor.environment;
 
             try {
-                evaluator.environment = createEnvironment(evaluator.environment);
+                executor.environment = createEnvironment(executor.environment);
 
                 for (const stmt of statement.statements) {
-                    evaluateStatement(evaluator, stmt);
+                    executeStatement(executor, stmt);
                 }
 
             } finally {
-                evaluator.environment = previous;
+                executor.environment = previous;
             }
 
             break;
         }
 
         case "IfStatement": {
-            const condition = evaluateExpression(evaluator, statement.condition);
+            const condition = executeExpression(executor, statement.condition);
 
             if (!is_Boolean(condition)) {
                 throw 0;
             }
 
             if (condition) {
-                evaluateStatement(evaluator, statement.thenBranch);
+                executeStatement(executor, statement.thenBranch);
             } else if (statement.elseBranch !== undefined) {
-                evaluateStatement(evaluator, statement.elseBranch);
+                executeStatement(executor, statement.elseBranch);
             }
 
             break;
@@ -488,7 +488,7 @@ export function evaluateStatement(evaluator, statement) {
 
         case "ReturnStatement": {
             const value = statement.expression !== undefined
-                ? evaluateExpression(evaluator, statement.expression)
+                ? executeExpression(executor, statement.expression)
                 : null;
 
             throw new ReturnSignal(value);
@@ -503,7 +503,7 @@ export function evaluateStatement(evaluator, statement) {
         }
 
         case "LoopStatement": {
-            evaluateLoopStatement(evaluator, statement)
+            executeLoopStatement(executor, statement)
             break;
         }
 
@@ -515,19 +515,19 @@ export function evaluateStatement(evaluator, statement) {
 
 /**
  * 
- * @param {Evaluator} evaluator 
+ * @param {Executor} executor 
  * @param {Statement[]} statements 
  */
-function evaluateStatements(evaluator, statements) {
+function executeStatements(executor, statements) {
     for (const statement of statements) {
-        evaluateStatement(evaluator, statement);
+        executeStatement(executor, statement);
     }
 }
 
 /**
  * 
- * @param {Evaluator} evaluator 
+ * @param {Executor} executor 
  */
-export function evaluate(evaluator) {
-    evaluateStatements(evaluator, evaluator.statements)
+export function execute(executor) {
+    executeStatements(executor, executor.statements)
 }

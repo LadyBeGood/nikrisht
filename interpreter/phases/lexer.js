@@ -7,13 +7,12 @@ import { keywords } from "../core/keywords.js";
 /**
  * Creates a new lexer state.
  * 
- * @param {string} source Source code of the Nikrisht file.
+ * @param {Interpreter} interpreter Source code of the Nikrisht file.
  * @returns {Lexer} Lexer state.
  */
-export function createLexer(source) {
+export function createLexer(interpreter) {
     return {
-        source,
-        tokens: [],
+        interpreter,
         start: 0,
         current: 0,
         line: 0,

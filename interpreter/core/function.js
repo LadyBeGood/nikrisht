@@ -1,7 +1,7 @@
 // @ts-check
 
 import "../types.js";
-import { evaluateStatement } from "../phases/evaluator";
+import { evaluateStatement } from "../phases/executor.js";
 import { createEnvironment, declare } from "./environment";
 import { ReturnSignal } from "./signals.js";
 
