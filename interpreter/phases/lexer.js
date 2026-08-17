@@ -26,7 +26,7 @@ export function createLexer(interpreter) {
  * @returns {boolean} True if there are no more characters to scan.
  */
 function isAtEnd(lexer) {
-    return lexer.current >= lexer.source.length;
+    return lexer.current >= lexer.interpreter.source.length;
 }
 
 /**
@@ -36,7 +36,7 @@ function isAtEnd(lexer) {
  * @returns {string | undefined} The current character, or `undefined` if the lexer is at EndOfFile.
  */
 function peek(lexer) {
-    return lexer.source[lexer.current];
+    return lexer.interpreter.source[lexer.current];
 }
 
 /**
@@ -46,7 +46,7 @@ function peek(lexer) {
  * @returns {string | undefined} The consumed character, or `undefined` if the lexer is at EndOfFile.
  */
 function consume(lexer) {
-    return lexer.source[lexer.current++];
+    return lexer.interpreter.source[lexer.current++];
 }
 
 
@@ -58,7 +58,7 @@ function consume(lexer) {
  * @returns {boolean} `true` if the current character matches one of the expected characters, otherwise `false`.
  */
 function check(lexer, expected) {
-    if (lexer.source[lexer.current] === expected) {
+    if (lexer.interpreter.source[lexer.current] === expected) {
         return true;
     } else {
         return false;
@@ -73,7 +73,7 @@ function check(lexer, expected) {
  * @returns {boolean} True if the character matched and was consumed.
  */
 function match(lexer, expected) {
-    if (lexer.source[lexer.current] != expected) {
+    if (lexer.interpreter.source[lexer.current] != expected) {
         return false;
     } else {
         lexer.current++;
@@ -129,15 +129,12 @@ function isIdentifierPart(character) {
  *  
  * @param {Lexer} lexer 
  * @param {TokenType} tokenType 
- * @param {any} [literal] 
  */
-function addToken(lexer, tokenType, literal) {
-    lexer.tokens.push({ 
+function addToken(lexer, tokenType) {
+    lexer.interpreter.tokens.push({ 
         type: tokenType, 
-        literal, 
         start: lexer.start, 
         end: lexer.current,
-        lexeme: lexer.source.slice(lexer.start, lexer.current),
     });
 }
 
@@ -165,8 +162,7 @@ function lexString(lexer) {
     consume(lexer)
 
     // Skip the quotes for literal value
-    const literal = lexer.source.slice(lexer.start + 1, lexer.current - 1)
-    addToken(lexer, "StringLiteral", literal)
+    addToken(lexer, "StringLiteral")
 }
 
 /**
@@ -190,8 +186,7 @@ function lexNumber(lexer) {
         }
     }
 
-    const literal = parseFloat(lexer.source.slice(lexer.start, lexer.current))
-    addToken(lexer, "NumericLiteral", literal);
+    addToken(lexer, "NumericLiteral");
 }
 
 /**
@@ -203,7 +198,7 @@ function lexIdentifier(lexer) {
         consume(lexer);
     }
 
-    const lexeme = lexer.source.slice(lexer.start, lexer.current);
+    const lexeme = lexer.interpreter.source.slice(lexer.start, lexer.current);
     const type = 
         keywords.has(lexeme) 
             ? /** @type {TokenType} */ (lexeme[0].toUpperCase() + lexeme.slice(1)) 
@@ -323,7 +318,6 @@ function lexToken(lexer) {
  * Lexes the source code and converts it into an array of token.
  * 
  * @param {Lexer} lexer Lexer state.
- * @returns {Token[]} Generated tokens.
  */
 export function lex(lexer) {
     while (!isAtEnd(lexer)) {
@@ -331,7 +325,6 @@ export function lex(lexer) {
         lexToken(lexer)
     }
 
-    lexer.tokens.push({ type: "EndOfFile", start: lexer.start, end: lexer.current, lexeme: "" });
-    return lexer.tokens;
+    lexer.interpreter.tokens.push({ type: "EndOfFile", start: lexer.start, end: lexer.current });
 }
 

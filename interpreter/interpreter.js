@@ -17,8 +17,9 @@ export function createInterpreter(source) {
         source,
         tokens: [],
         statements: [],
-        success: false,
+        locals: new Map(),
         diagnostics: [],
+        success: false,
     };
 }
 

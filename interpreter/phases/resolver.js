@@ -1,22 +1,20 @@
 // @ts-check
 
+import { getLexeme } from "../core/token.js";
 import "../types.js";
 
 /**
  * 
  * @param {*} interpreter 
- * @param {Statement[]} statements 
  * @returns {Resolver}
  */
-export function createResolver(interpreter, statements) {
+export function createResolver(interpreter) {
     return {
-        statements,
-        diagnostics: [],
         interpreter,
         scopes: [],
         functionDepth: 0,
         loopDepth: 0,
-    }   
+    }
 }
 
 
@@ -25,7 +23,7 @@ export function createResolver(interpreter, statements) {
  * @param {Resolver} resolver 
  */
 function beginScope(resolver) {
-	resolver.scopes.push(new Map());
+    resolver.scopes.push(new Map());
 }
 
 /**
@@ -33,7 +31,7 @@ function beginScope(resolver) {
  * @param {Resolver} resolver 
  */
 function endScope(resolver) {
-	resolver.scopes.pop();
+    resolver.scopes.pop();
 }
 
 /**
@@ -58,7 +56,7 @@ function peek(resolver) {
 /**
  * 
  * @param {Resolver} resolver 
- * @param {Token} name 
+ * @param {string} name 
  */
 function declare(resolver, name) {
     if (resolver.scopes.length === 0) {
@@ -67,35 +65,36 @@ function declare(resolver, name) {
 
     const scope = peek(resolver);
 
-    if (scope.has(name.lexeme)) {
+    if (scope.has(name)) {
         throw 0;
     }
 
-    scope.set(name.lexeme, false);
+    scope.set(name, false);
 }
 
 /**
  * 
  * @param {Resolver} resolver 
- * @param {Token} name 
+ * @param {string} name 
  */
 function define(resolver, name) {
     if (resolver.scopes.length === 0) {
         return;
     }
 
-    peek(resolver).set(name.lexeme, true);
+    peek(resolver).set(name, true);
 }
 
 /**
  * 
  * @param {Resolver} resolver 
- * @param {{ name: Token }} node 
+ * @param {Expression} node 
+ * @param {string} name
  */
-function resolveLocal(resolver, node) {
+function resolveLocal(resolver, node, name) {
     for (let i = resolver.scopes.length - 1; i >= 0; i--) {
-        if (resolver.scopes[i].has(node.name.lexeme)) {
-            resolver.interpreter.resolve(node, resolver.scopes.length - 1 - i);
+        if (resolver.scopes[i].has(name)) {
+            resolver.interpreter.locals.set(node, resolver.scopes.length - 1 - i);
             return;
         }
     }
@@ -108,8 +107,8 @@ function resolveLocal(resolver, node) {
  */
 function resolveFunction(resolver, fn) {
     if (fn.name !== undefined) {
-        declare(resolver, fn.name);
-        define(resolver, fn.name);
+        declare(resolver, getLexeme(resolver.interpreter, fn.name));
+        define(resolver, getLexeme(resolver.interpreter, fn.name));
     }
 
 
@@ -117,8 +116,8 @@ function resolveFunction(resolver, fn) {
     beginScope(resolver);
 
     for (const parameter of fn.parameters) {
-        declare(resolver, parameter);
-        define(resolver, parameter);
+        declare(resolver, getLexeme(resolver.interpreter, parameter));
+        define(resolver, getLexeme(resolver.interpreter, parameter));
     }
 
     resolveStatement(resolver, fn.body);
@@ -137,22 +136,22 @@ function resolveExpression(resolver, expression) {
     switch (expression.type) {
         case "VariableExpression":
             if (resolver.scopes.length > 0) {
-                if (!peek(resolver).get(expression.name.lexeme)) {
+                if (!peek(resolver).get(getLexeme(resolver.interpreter, expression.name))) {
                     throw 1;
                 }
             }
-            resolveLocal(resolver, expression);
+            resolveLocal(resolver, expression, getLexeme(resolver.interpreter, expression.name));
             break;
         case "FunctionExpression":
             resolveFunction(resolver, expression);
             break;
         case "GroupingExpression":
         case "UnaryExpression":
-            resolveExpression(resolver, expression.expression);
+            resolveExpression(resolver, expression.argument);
             break;
         case "AssignmentExpression":
             resolveExpression(resolver, expression.value);
-            resolveLocal(resolver, expression);
+            resolveLocal(resolver, expression, getLexeme(resolver.interpreter, expression.name));
             break;
         case "IndexedAssignmentExpression":
             resolveExpression(resolver, expression.left);
@@ -222,9 +221,9 @@ function resolveStatement(resolver, statement) {
             break;
         case "VariableDeclaration":
         case "ConstantDeclaration":
-            declare(resolver, statement.name);
+            declare(resolver, getLexeme(resolver.interpreter, statement.name));
             if (statement.initialiser !== undefined) resolveExpression(resolver, statement.initialiser);
-            define(resolver, statement.name);
+            define(resolver, getLexeme(resolver.interpreter, statement.name));
             break;
         case "FunctionDeclaration":
             resolveFunction(resolver, statement);
@@ -235,13 +234,13 @@ function resolveStatement(resolver, statement) {
             beginScope(resolver);
 
             if (statement.binding?.index) {
-                declare(resolver, statement.binding.index);
-                define(resolver, statement.binding.index);
+                declare(resolver, getLexeme(resolver.interpreter, statement.binding.index));
+                define(resolver, getLexeme(resolver.interpreter, statement.binding.index));
             }
 
             if (statement.binding?.value) {
-                declare(resolver, statement.binding.value);
-                define(resolver, statement.binding.value);
+                declare(resolver, getLexeme(resolver.interpreter, statement.binding.value));
+                define(resolver, getLexeme(resolver.interpreter, statement.binding.value));
             }
 
             resolver.loopDepth++;
@@ -273,5 +272,5 @@ function resolveStatements(resolver, statements) {
  * @param {Resolver} resolver 
  */
 export function resolve(resolver) {
-	resolveStatements(resolver, resolver.statements);
+    resolveStatements(resolver, resolver.interpreter.statements);
 }

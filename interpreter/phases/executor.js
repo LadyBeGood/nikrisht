@@ -7,15 +7,16 @@ import { natives } from "../core/natives.js";
 import { assign, assignAt, createEnvironment, declare, lookup, lookupAt } from "../core/environment.js";
 import { createFunction } from "../core/function.js";
 import { ExitSignal, ReturnSignal, SkipSignal } from "../core/signals.js";
+import { getLexeme } from "../core/token.js";
 
 
 
 /**
  * 
- * @param {Statement[]} statements 
+ * @param {Interpreter} interpreter 
  * @returns {Executor}
  */
-export function createExecutor(statements) {
+export function createExecutor(interpreter) {
     const globals = createEnvironment();
 
     for (const [name, fn] of Object.entries(natives)) {
@@ -23,11 +24,9 @@ export function createExecutor(statements) {
     }
 
     return {
-        diagnostics: [],
-        statements,
+        interpreter,
         globals,
         environment: globals,
-        locals: new Map(),
     }
 }
 
@@ -91,7 +90,7 @@ function executeLoopStatement(executor, statement) {
             const environment = createEnvironment(executor.environment);
 
             if (statement.binding?.value !== undefined) {
-                declare(environment, statement.binding.value.lexeme, i);
+                declare(environment, getLexeme(executor.interpreter, statement.binding.value), i);
             }
 
             if (executeLoopBody(executor, executor.environment, statement.body)) break;
@@ -123,11 +122,11 @@ function executeLoopStatement(executor, statement) {
 
             if (statement.binding?.index !== undefined) {
                 // 1-based index
-                declare(environment, statement.binding.index.lexeme, i + 1);
+                declare(environment, getLexeme(executor.interpreter, statement.binding.index), i + 1);
             }
 
             if (statement.binding?.value !== undefined) {
-                declare(environment, statement.binding.value.lexeme, iterable[i]);
+                declare(environment, getLexeme(executor.interpreter, statement.binding.value), iterable[i]);
             }
 
             if (executeLoopBody(executor, executor.environment, statement.body)) break;
@@ -141,12 +140,12 @@ function executeLoopStatement(executor, statement) {
 
             if (statement.binding?.index !== undefined) {
                 // key binding
-                declare(environment, statement.binding.index.lexeme, key);
+                declare(environment, getLexeme(executor.interpreter, statement.binding.index), key);
             }
 
             if (statement.binding?.value !== undefined) {
                 // value binding
-                declare(environment, statement.binding.value.lexeme, value);
+                declare(environment, getLexeme(executor.interpreter, statement.binding.value), value);
             }
 
             if (executeLoopBody(executor, executor.environment, statement.body)) break;
@@ -170,7 +169,7 @@ function executeLoopStatement(executor, statement) {
             const environment = createEnvironment(executor.environment);
 
             if (statement.binding?.value !== undefined) {
-                declare(environment, statement.binding.value.lexeme, value);
+                declare(environment, getLexeme(executor.interpreter, statement.binding.value), value);
             }
 
             if (executeLoopBody(executor, executor.environment, statement.body)) break;
@@ -198,8 +197,8 @@ function executeExpression(executor, expression) {
             return executeExpression(executor, expression.expression);
 
         case "VariableExpression": {
-            const name = expression.name.lexeme;
-            const distance = executor.locals.get(expression);
+            const name = getLexeme(executor.interpreter, expression.name);
+            const distance = executor.interpreter.locals.get(expression);
 
             if (distance !== undefined) {
                 return lookupAt(executor.environment, distance, name);
@@ -209,16 +208,16 @@ function executeExpression(executor, expression) {
         }
 
         case "AssignmentExpression": {
-            const name = expression.name.lexeme;
+            const name = getLexeme(executor.interpreter, expression.name);
             const value = executeExpression(executor, expression);
-            const distance = executor.locals.get(expression);
+            const distance = executor.interpreter.locals.get(expression);
 
             if (distance !== undefined) {
                 assignAt(executor.environment, distance, name, value);
             } else {
                 assign(executor.environment, name, value);
             }
-            
+
             return value;
         }
 
@@ -239,14 +238,14 @@ function executeExpression(executor, expression) {
             for (let i = 0; i < expression.keys.length; i++) {
                 const key = executeExpression(executor, expression.keys[i]);
                 const value = executeExpression(executor, expression.values[i]);
-                object.set(key,  value);
+                object.set(key, value);
             }
 
             return object;
         }
 
         case "UnaryExpression": {
-            const operand = executeExpression(executor, expression.expression);
+            const operand = executeExpression(executor, expression.argument);
 
             switch (expression.operator.type) {
                 case "Minus":
@@ -287,7 +286,7 @@ function executeExpression(executor, expression) {
                         }
 
                         throw 0;
-                    } 
+                    }
 
                     throw 0;
             }
@@ -329,7 +328,7 @@ function executeExpression(executor, expression) {
 
         case "FunctionExpression":
             return createFunction(expression, executor.environment);
-        
+
         case "IndexExpression": {
             const subject = executeExpression(executor, expression.object);
             const index = executeExpression(executor, expression.index);
@@ -356,7 +355,7 @@ function executeExpression(executor, expression) {
 
             throw 0;
         }
-        
+
         case "IndexedAssignmentExpression": {
             const subject = executeExpression(executor, expression.left.object);
             const index = executeExpression(executor, expression.left.index);
@@ -384,7 +383,7 @@ function executeExpression(executor, expression) {
 
         case "LogicalExpression": {
             const left = executeExpression(executor, expression.left);
-            
+
             if (!is_Boolean(left)) {
                 throw 0;
             }
@@ -436,20 +435,20 @@ export function executeStatement(executor, statement) {
                 ? executeExpression(executor, statement.initialiser)
                 : null;
 
-            declare(executor.environment, statement.name.lexeme, value);
+            declare(executor.environment, getLexeme(executor.interpreter, statement.name), value);
             break;
         }
 
         case "ConstantDeclaration": {
             const value = executeExpression(executor, statement.initialiser);
-            declare(executor.environment, statement.name.lexeme, value, /* reassignable */ false);
+            declare(executor.environment, getLexeme(executor.interpreter, statement.name), value, /* reassignable */ false);
             break;
         }
 
         case "FunctionDeclaration": {
             const fn = createFunction(statement, executor.environment);
 
-            declare(executor.environment, statement.name.lexeme, fn);
+            declare(executor.environment, getLexeme(executor.interpreter, statement.name), fn);
             break;
         }
 
@@ -529,5 +528,5 @@ function executeStatements(executor, statements) {
  * @param {Executor} executor 
  */
 export function execute(executor) {
-    executeStatements(executor, executor.statements)
+    executeStatements(executor, executor.interpreter.statements);
 }

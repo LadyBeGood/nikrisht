@@ -13,6 +13,7 @@
  * @property {string} source Raw source code being interpreted.
  * @property {Token[]} tokens Tokens produced by the lexer phase.
  * @property {Statement[]} statements Abstract syntax tree produced by the parser phase.
+ * @property {Map<Expression, number>} locals
  * @property {Diagnostic[]} diagnostics Errors/warnings/information collected across all phases.
  * @property {boolean} success True if no diagnostics with severity level "error" were reported
  */
@@ -57,7 +58,6 @@
  * @property {Interpreter} interpreter
  * @property {Environment} globals
  * @property {Environment} environment
- * @property {Map<Expression, number>} locals
  */
 
 
@@ -122,15 +122,26 @@
 /**
  * A token produced by the lexer.
  * 
+ * The "lexeme" and "literal" fields are omitted here for simplicity and
+ * to save memory. Use `getLexeme` and `getLiteral` from `./core/token.js`
+ * instead.
+ * 
  * @typedef {Object} Token
  * @property {TokenType} type The type of the token.
- * @property {Literal} [literal] The processed value.
  * @property {number} start Start character index in the source (inclusive).
  * @property {number} end End character index in the source (exclusive).
- * @property {string} lexeme
  */
 
 
+/**
+ * `Range` identifier is already taken unfortunately. Hence the name `SourceRange` instead.
+ * 
+ * @typedef {Object} SourceRange
+ * @property {number} startLine
+ * @property {number} endLine
+ * @property {number} startColumn
+ * @property {number} endColumn
+ */
 
 /*=========================================*/
 /* Expressions                             */
@@ -140,35 +151,45 @@
  * @typedef {object} LiteralExpression
  * @property {"LiteralExpression"} type
  * @property {Literal} value
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} UnaryExpression
  * @property {"UnaryExpression"} type
- * @property {Token} operator
- * @property {Expression} expression
+ * @property {string} operator
+ * @property {Expression} argument
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} GroupingExpression
  * @property {"GroupingExpression"} type
  * @property {Expression} expression
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} BinaryExpression
  * @property {"BinaryExpression"} type
  * @property {Expression} left
- * @property {Token} operator
+ * @property {string} operator
  * @property {Expression} right
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} LogicalExpression
  * @property {"LogicalExpression"} type
  * @property {Expression} left
- * @property {Token} operator
+ * @property {string} operator
  * @property {Expression} right
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
@@ -176,20 +197,25 @@
  * @property {"CallExpression"} type
  * @property {Expression} callee
  * @property {Expression[]} arguments
- * @property {Token} closingRoundBracket
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} VariableExpression
  * @property {"VariableExpression"} type
- * @property {Token} name
+ * @property {string} name
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
  * @typedef {Object} AssignmentExpression
  * @property {"AssignmentExpression"} type
- * @property {Token} name
+ * @property {string} name
  * @property {Expression} value 
+ * @property {number} start
+ * @property {number} end
  */
 
 /**
