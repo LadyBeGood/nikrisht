@@ -17,113 +17,39 @@ var _self="undefined"!=typeof window?window:"undefined"!=typeof WorkerGlobalScop
 
 
 
-// syntax highlighting for Utkrisht
-Prism.languages.utkrisht = {
+// syntax highlighting for Nikrisht
+Prism.languages.nikrisht = {
     "string": {
         pattern: /"(?:\\.|[^"\\])*"/,
         greedy: true
     },
 
-    "keyword": /\b(?:try|fix|crash|return|when|else|loop|with|skip|exit|import|export)\b/,
+    "keyword": /\b(?:return|if|else|loop|with|skip|exit)\b/,
     "number": {
         pattern: /(^|[^\w-])-?\d+(?:\.\d+)?(?=$|[^\w-])/,
         lookbehind: true
     },
-    "boolean": /\b(?:yes|no)\b/,
+    "boolean": /\b(?:true|false)\b/,
     "constant": /\b(?:infinity|nan)\b/,
     "function": {
-        // pattern: /\b[a-z](?:[a-z0-9\-]*[a-z0-9])?\b(?=\s(?:[+-]?\d+|:|"[^"]*"|\b(?:yes|no)\b|\b[a-z](?:[a-z0-9\-]*[a-z0-9])?\b|[(\[{]))/,
-        pattern: /[a-z](?:[a-z]|[0-9]|-(?!-))*[a-z0-9]?(?= -\d| +\d| -\d| \-infinity|\(| [a-z0-9A-Z"\[\(])(?! with)/,
+        pattern: /[a-zA-Z](?:[a-z0-9_A-Z]*)?\(/,
         greedy: true,
         alias: "function"
     },
-    // "null": {
-    //     pattern: /\bnull\b/,
-    //     alias: "boolean"
-    // },
+    "null": {
+        pattern: /\bnull\b/,
+        alias: "boolean"
+    },
     "variable": {
-        pattern: /\b[a-z](?:[a-z0-9-]*[a-z0-9])?\b/,
+        pattern: /\b[a-zA-Z](?:[a-z0-9_A-Z]*)?\b/,
         greedy: true
     },
-    "operator": /\/|>=|<=|=|\.\.|\.\.\.|\.|~|\+|-|\*|<|>|!|\||!=|&/,
+    "operator": /\/|>=|<=|==|\.\.|\.|\+|-|\*|<|>|!|\||!=|&/,
     "punctuation": /[\{\}\[\]\(\);\.,:]/
 };
 
-// Retokenize and handle nested comments, which prism's grammar cant do.
-(function (Prism) {
 
-    const grammar = Prism.languages.utkrisht;
-
-    const originalTokenize = Prism.tokenize;
-
-    Prism.tokenize = function (text, grammar) {
-        if (grammar !== Prism.languages.utkrisht) {
-            return originalTokenize(text, grammar);
-        }
-
-        const tokens = [];
-        let i = 0;
-
-        while (i < text.length) {
-
-            if (text[i] === "#") {
-
-                // Count hashes
-                let j = i;
-                while (text[j] === "#") j++;
-                const count = j - i;
-
-                // Single-line comment
-                if (count === 1) {
-                    let end = text.indexOf("\n", j);
-                    if (end === -1) end = text.length;
-
-                    tokens.push(
-                        new Prism.Token(
-                            "comment",
-                            text.slice(i, end)
-                        )
-                    );
-
-                    i = end;
-                    continue;
-                }
-
-                // Block comment
-                const delimiter = "#".repeat(count);
-                const end = text.indexOf(delimiter, j);
-
-                if (end !== -1) {
-                    tokens.push(
-                        new Prism.Token(
-                            "comment",
-                            text.slice(i, end + count)
-                        )
-                    );
-
-                    i = end + count;
-                    continue;
-                }
-            }
-
-            // Normal text
-            let next = text.indexOf("#", i);
-            if (next === -1) next = text.length;
-
-            const plain = text.slice(i, next);
-
-            tokens.push(...originalTokenize(plain, grammar));
-
-            i = next;
-        }
-
-        return tokens;
-    };
-
-})(Prism);
-
-
-Prism.languages.webmanifest = Prism.languages.utkrisht;
+Prism.languages.webmanifest = Prism.languages.nikrisht;
 
 
 

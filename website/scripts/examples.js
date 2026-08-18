@@ -2,75 +2,89 @@
 export const examples = {
     "prime-finder": `
 # Checks if a number is prime
-is-prime number = {
-    when number < 2
-        return false
+func isPrime(number) {
+    if (number < 2) {
+        return false;
+    }
 
-    loop 2..<number with i
-        when remainder number, i = 0
-            return false
+    loop (2..<number with i) {
+        if (remainder(number, i) == 0) {
+            return false;
+        }
+    }
 
-    return true
+    return true;
 }
 
-write is-prime 117
-
+write(isPrime(117));
 `,
 
     "merge-sort": `
-# Sorts an array using Merge Sort algorithm.
-merge-sort array = {
+# Sorts an array using Merge Sort algorithm
+func mergeSort(array) {
     # Base case, an array of 0 or 1 elements is already sorted
-    when count array <= 1
-        return array
-
-    # Split
-    middle = floor (count array) / 2
-    left = slice array, 1, middle
-    right = slice array, middle + 1
-
-    # Merges two already sorted arrays into a single sorted array.
-    merge left, right = {
-        result = []
-     
-        i = 1  # Pointer for left array
-        j = 1  # Pointer for right array
-     
-        loop i <= count left & j <= count right
-            when left.(i) < right.(j)
-                insert result, left.(i)
-                i ~ i + 1
-            else
-                insert result, right.(j)
-                j ~ j + 1
-     
-        # Concatenate any leftover elements 
-        # (one array might finish before the other)
-        return [...result, ...(slice left, i), ...(slice right, j)]
+    if (count(array) <= 1) {
+        return array;
     }
 
-    # Merge
-    return merge (merge-sort left), merge-sort right
+    # Split the array into two halves
+    const middle = floor(count(array) / 2);
+
+    # Sort both halves, recursively
+    const left = mergeSort(slice(array, 1, middle));
+    const right = mergeSort(slice(array, middle + 1, count(array)));
+
+    # Merge the two sorted halves
+    const result = [];
+    var i = 1;
+    var j = 1;
+
+    loop (i <= count(left) & j <= count(right)) {
+        if (left[i] <= right[j]) {
+            put(result, left[i]);
+            i = i + 1;
+        } else {
+            put(result, right[j]);
+            j = j + 1;
+        }
+    }
+
+    # Add any remaining elements from the left half.
+    loop (i <= count(left)) {
+        put(result, left[i]);
+        i = i + 1;
+    }
+
+    # Add any remaining elements from the right half.
+    loop (j <= count(right)) {
+        put(result, right[j]);
+        j = j + 1;
+    }
+
+    return result;
 }
 
-
-write merge-sort [10, -1, 2, 5, 0, 9]
+write(mergeSort([10, -1, 2, 5, 0, 9]));
 
 `,
 
     "fibonacci": `
-fibonacci number = {
-    when has cache, number
-        return cache.(number)
-    
-    when number <= 1
-        return number
-    
-    cache.(number) = (fibonacci number - 1) + fibonacci number - 2
-    return cache.(number)
+const cache = {};
+
+func fibonacci(number) {
+    if (cache[number] != null) {
+        return cache[number];
+    }
+
+    if (number <= 1) {
+        return number;
+    }
+
+    cache[number] = fibonacci(number - 1) + fibonacci(number - 2);
+    return cache[number];
 }
 
-write fibonacci 8
+write(fibonacci(8));
 
 `
 

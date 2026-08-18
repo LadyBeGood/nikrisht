@@ -162,7 +162,7 @@ function setupExampleSelection(editor) {
 }
 
 function setupAceEditor(editor) {
-    editor.getSession().setMode("ace/mode/utkrisht");
+    editor.getSession().setMode("ace/mode/nikrisht");
 
     // source: https://groups.google.com/g/ace-discuss/c/FDyNuFJCvTw?pli=1
     editor.setOption("scrollPastEnd", 0.7);
@@ -333,7 +333,7 @@ export async function setupDocumentation() {
                 return `<blockquote>${body}</blockquote>`;
             },
             code(token) {
-                return `<pre><code class="language-utkrisht">${token.text}</code></pre>`;
+                return `<pre><code class="language-nikrisht">${token.text}</code></pre>`;
             }
         } 
     });
