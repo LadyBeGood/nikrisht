@@ -2,8 +2,8 @@
 
 import "../types.js";
 import { keywords } from "../core/keywords.js";
-import { LexingError } from "../diagnostics/errors.js";
-import { report as diagnosticReport } from "../diagnostics/report.js";
+import { LexingError } from "../diagnostics/classes.js";
+import { error as diagnosticError } from "../diagnostics/report.js";
 
 
 /**
@@ -107,7 +107,7 @@ function isIdentifierStart(character) {
 
     const characterCode = character.charCodeAt(0);
     return (
-        (characterCode >= 65 && characterCode <= 90)  ||   // A-Z
+        (characterCode >= 65 && characterCode <= 90) ||    // A-Z
         (characterCode >= 97 && characterCode <= 122) ||   // a-z
         characterCode === 95                               // _
     );
@@ -132,9 +132,9 @@ function isIdentifierPart(character) {
  * @param {TokenType} tokenType 
  */
 function addToken(lexer, tokenType) {
-    lexer.interpreter.tokens.push({ 
-        type: tokenType, 
-        start: lexer.start, 
+    lexer.interpreter.tokens.push({
+        type: tokenType,
+        start: lexer.start,
         end: lexer.current,
     });
 }
@@ -146,11 +146,10 @@ function addToken(lexer, tokenType) {
  * end range in their nodes themselves.
  * 
  * @param {Lexer} lexer 
- * @param {DiagnosticDefinition} definition 
- * @param {...*} args 
+ * @param {string} message
  */
-function report(lexer, definition, ...args) {
-    diagnosticReport(lexer.interpreter, { start: lexer.start, end: lexer.current }, definition, ...args);
+function error(lexer, message) {
+    diagnosticError(lexer.interpreter, { start: lexer.start, end: lexer.current }, message, "lexer");
 }
 
 /**
@@ -163,7 +162,7 @@ function lexString(lexer) {
     }
 
     if (isAtEnd(lexer)) {
-        throw Error("Unterminated string.")
+        error(lexer, "Unterminated string.");
     }
 
     // consume closing quote
@@ -185,7 +184,7 @@ function lexNumber(lexer) {
         consume(lexer)
 
         if (isAtEnd(lexer)) {
-            throw Error("Oihoi")
+            error(lexer, "Invalid number.")
         }
 
         while (isDigit(peek(lexer))) {
@@ -206,9 +205,9 @@ function lexIdentifier(lexer) {
     }
 
     const lexeme = lexer.interpreter.source.slice(lexer.start, lexer.current);
-    const type = 
-        keywords.has(lexeme) 
-            ? /** @type {TokenType} */ (lexeme[0].toUpperCase() + lexeme.slice(1)) 
+    const type =
+        keywords.has(lexeme)
+            ? /** @type {TokenType} */ (lexeme[0].toUpperCase() + lexeme.slice(1))
             : "Identifier"
 
     addToken(lexer, type)
@@ -276,7 +275,7 @@ function lexToken(lexer) {
                 addToken(lexer, "ExclamationMark")
             }
             break;
-        case "=": 
+        case "=":
             if (match(lexer, "=")) {
                 addToken(lexer, "EqualEqual")
             } else {
@@ -315,7 +314,7 @@ function lexToken(lexer) {
             } else if (isIdentifierStart(character)) {
                 lexIdentifier(lexer)
             } else {
-                throw Error("oiiiiiii");
+                error(lexer, `Invalid character ${JSON.stringify(character)}`);
             }
     }
 }
@@ -337,7 +336,7 @@ export function lex(lexer) {
                 continue;
             }
 
-            throw error; 
+            throw error;
         }
     }
 

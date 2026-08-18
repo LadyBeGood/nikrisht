@@ -2,8 +2,7 @@
 // @ts-check
 
 import { getRange } from "../core/range";
-import { LexingError, ParsingError, ResolvingError, ExecutionError, ImplementationError } from "./errors"
-import { formatTemplate } from "./format"
+import { LexingError, ParsingError, ResolvingError, ExecutionError, ImplementationError } from "./classes"
 
 /**
  * Why didn't I put this inside `types.js`? Because TypeScript is stupid and won't let
@@ -24,62 +23,79 @@ import { formatTemplate } from "./format"
  *          | "executor" } PhaseName
  */
 
+
 /**
- * Why a seprate function for just one operation? Because this might change in future.
+ *      
+ * @param {PhaseName} phase 
+ * @returns {PhaseError}
+ */
+function getPhaseError(phase) {
+    switch (phase) {
+        case "lexer": 
+            return LexingError;
+        case "parser": 
+            return ParsingError;
+        case "resolver": 
+            return ResolvingError;
+        case "executor": 
+            return ExecutionError;
+
+        default: 
+            throw new ImplementationError("Invalid error code. Error code must be between 1000 and 4999 (both inclusive).");
+    }
+}
+
+
+/**
  * 
  * @param {Interpreter} interpreter
  * @param {SourceSpan} node
- * @param {DiagnosticDefinition} definition 
- * @param {...*} args 
+ * @param {string} message 
+ * @param {PhaseName} phase 
+ * @returns {never}
+ * @throws {PhaseError}
  */
-export function report(interpreter, node, definition, ...args) {
-    const { code, template, type } = definition;
-
-    const message = formatTemplate(template, args);
-
-    const [ phase, ErrorClass ] = getPhaseAndError(code);
+export function error(interpreter, node, message, phase) {
+    const ErrorClass = getPhaseError(phase);
 
     const startingLine = interpreter.host === "browser" ? 0 : 1;
     const startingColumn = interpreter.host === "browser" ? 0 : 1;
     const { startLine, endLine, startColumn, endColumn } = getRange(interpreter, node, startingLine, startingColumn);
 
-    interpreter.diagnostics.push({ 
-        type, 
-        code, 
+    interpreter.diagnostics.push({
+        type: "error",
         phase,
-        message, 
+        message,
         startLine,
         endLine,
         startColumn,
         endColumn,
     });
 
-    if (type === "error") {
-        throw new ErrorClass()
-    }
+    throw new ErrorClass()
 }
+
 
 /**
- *      
- * @param {number} code 
- * @returns {[PhaseName, PhaseError]}
+ * 
+ * @param {Interpreter} interpreter
+ * @param {SourceSpan} node
+ * @param {string} message 
+ * @param {PhaseName} phase 
  */
-function getPhaseAndError(code) {
-    if (code >= 1000 && code <= 1999) {
-        return ["lexer", LexingError]
-    }
+export function warn(interpreter, node, message, phase) {
+    const startingLine = interpreter.host === "browser" ? 0 : 1;
+    const startingColumn = interpreter.host === "browser" ? 0 : 1;
+    const { startLine, endLine, startColumn, endColumn } = getRange(interpreter, node, startingLine, startingColumn);
 
-    if (code >= 2000 && code <= 2999) {
-        return ["parser", ParsingError]
-    }
-    
-    if (code >= 3000 && code <= 3999) {
-        return ["resolver", ResolvingError]
-    }
-    
-    if (code >= 4000 && code <= 4999) {
-        return ["executor", ExecutionError]
-    }
-
-    throw new ImplementationError("Invalid error code. Error code must be between 1000 and 4999 (both inclusive).")
+    interpreter.diagnostics.push({
+        type: "warning",
+        phase,
+        message,
+        startLine,
+        endLine,
+        startColumn,
+        endColumn,
+    });
 }
+

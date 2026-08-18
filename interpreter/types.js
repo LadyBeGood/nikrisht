@@ -473,7 +473,6 @@
 /**
  * @typedef {Object} Diagnostic
  * @property {"error" | "warning" | "information"} type
- * @property {number} code
  * @property {string} phase
  * @property {string} message Fully formatted message, placeholders already substituted
  * @property {number} startLine 
@@ -481,11 +480,3 @@
  * @property {number} endLine
  * @property {number} endColumn
  */
-
-/**
- * @typedef {Object} DiagnosticDefinition
- * @property {"error" | "warning" | "information"} type
- * @property {number} code
- * @property {string} template Unformatted message with placeholders.
- */
-

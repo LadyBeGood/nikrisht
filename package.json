@@ -1,32 +1,32 @@
 {
-    "name": "utkrisht",
+    "name": "nikrisht",
     "version": "0.1.2",
-    "description": "A unified language for the web.",
-    "homepage": "https://github.com/LadyBeGood/utkrisht#readme",
+    "description": "A small language.",
+    "homepage": "https://github.com/LadyBeGood/nikrisht#readme",
     "keywords": [
-        "utkrisht",
+        "Nikrisht",
+        "nki",
         "LadyBeGood",
         "language",
-        "compiler",
+        "interpreter",
         "javascript"
     ],
     "files": [
-        "compiler"
+        "interpreter"
     ],
     "bin": {
-        "uki": "./compiler/uki.js"
+        "uki": "./interpreter/uki.js"
     },
     "bugs": {
-        "url": "https://github.com/LadyBeGood/utkrisht/issues"
+        "url": "https://github.com/LadyBeGood/nikrisht/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/LadyBeGood/utkrisht.git"
+        "url": "git+https://github.com/LadyBeGood/nikrisht.git"
     },
-    "license": "UNLICENSED",
     "author": "LadyBeGood",
     "type": "module",
-    "main": "./compiler/utkrisht.js",
+    "main": "./interpreter/utkrisht.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     }

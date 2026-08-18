@@ -1,6 +1,7 @@
 // @ts-check
 
 import { getLexeme } from "../core/token.js";
+import { ImplementationError } from "../diagnostics/classes.js";
 import "../types.js";
 
 /**
@@ -185,7 +186,7 @@ function resolveExpression(resolver, expression) {
             // Eat five star, do nothing :)
             break;
         default:
-            throw 0;
+            throw new ImplementationError("Unknown expression type.");
     }
 }
 
@@ -249,7 +250,7 @@ function resolveStatement(resolver, statement) {
             endScope(resolver);
             break;
         default:
-            throw 0;
+            throw new ImplementationError("Unknown statement type.");
     }
 }
 

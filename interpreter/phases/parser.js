@@ -2,6 +2,8 @@
 
 import "../types.js";
 import { getLexeme, getLiteral } from "../core/token.js";
+import { ImplementationError, ParsingError } from "../diagnostics/classes.js";
+import { error } from "../diagnostics/report.js";
 
 /**
  * Creates a new parser state.
@@ -93,12 +95,12 @@ function isAtEnd(parser) {
  */
 function consume(parser, type, message) {
     if (arguments.length !== 1 && arguments.length !== 3) {
-        throw new Error("consume() expects either 1 or 3 arguments.");
+        throw new ImplementationError("consume() expects either 1 or 3 arguments.");
     }
 
     if (type && message) {
         if (!check(parser, type)) {
-            throw message;
+            error(parser.interpreter, peek(parser), message, "parser");
         }
     }
 
@@ -123,8 +125,37 @@ function match(parser, ...expected) {
     return false
 }
 
+/**
+ * 
+ * @param {Parser} parser 
+ * @returns 
+ */
+function synchronize(parser) {
+    parser.current++;
 
+    while (!isAtEnd(parser)) {
+        const tokenType = peek(parser).type;
 
+        if (tokenType === "Semicolon") {
+            consume(parser);
+            return;
+        }
+
+        switch (tokenType) {
+            case "Func":
+            case "Var":
+            case "Const":
+            case "Loop":
+            case "Exit":
+            case "Skip":
+            case "If":
+            case "Return":
+                return;
+        }
+
+        consume(parser);
+    }
+}
 
 
 
@@ -226,7 +257,14 @@ function parsePrimaryExpression(parser) {
         return { type: "FunctionExpression", name, parameters, body, start, end: body.end };
     }
     else {
-        throw "Expected expression."
+        error(
+            parser.interpreter,
+            peek(parser),
+            check(parser, "EndOfFile")
+                ? "Expected an expression but reached end of code"
+                : "Expected an expression but got " + peek(parser).type,
+            "parser"
+        );
     }
 }
 
@@ -830,6 +868,15 @@ function parseDeclaration(parser) {
  */
 export function parse(parser) {
     while (!isAtEnd(parser)) {
-        parser.interpreter.statements.push(parseDeclaration(parser));
+        try {
+            parser.interpreter.statements.push(parseDeclaration(parser));
+        } catch (error) {
+            if (error instanceof ParsingError) {
+                synchronize(parser);
+                continue;
+            }
+
+            throw error;
+        }
     }
 }
