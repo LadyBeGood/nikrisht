@@ -19,12 +19,23 @@ var _self="undefined"!=typeof window?window:"undefined"!=typeof WorkerGlobalScop
 
 // syntax highlighting for Nikrisht
 Prism.languages.nikrisht = {
+    "comment": [
+        {
+            // Multiline 
+            pattern: /#\*[\s\S]*?\*#/,
+            greedy: true
+        },
+        {
+            // Single-line
+            pattern: /#.*/
+        }
+    ],
     "string": {
         pattern: /"(?:\\.|[^"\\])*"/,
         greedy: true
     },
 
-    "keyword": /\b(?:return|if|else|loop|with|skip|exit)\b/,
+    "keyword": /\b(?:return|if|else|loop|with|skip|exit|const|var|func)\b/,
     "number": {
         pattern: /(^|[^\w-])-?\d+(?:\.\d+)?(?=$|[^\w-])/,
         lookbehind: true
@@ -32,7 +43,7 @@ Prism.languages.nikrisht = {
     "boolean": /\b(?:true|false)\b/,
     "constant": /\b(?:infinity|nan)\b/,
     "function": {
-        pattern: /[a-zA-Z](?:[a-z0-9_A-Z]*)?\(/,
+        pattern: /[a-zA-Z](?:[a-z0-9_A-Z]*)?(?=\()/,
         greedy: true,
         alias: "function"
     },
@@ -44,8 +55,8 @@ Prism.languages.nikrisht = {
         pattern: /\b[a-zA-Z](?:[a-z0-9_A-Z]*)?\b/,
         greedy: true
     },
-    "operator": /\/|>=|<=|==|\.\.|\.|\+|-|\*|<|>|!|\||!=|&/,
-    "punctuation": /[\{\}\[\]\(\);\.,:]/
+    "operator": /\/|>=|<=|==|\.\.|\.|\+|-|\*|<|>|!|\||!=|=|&/,
+    // "punctuation": /[\{\}\[\]\(\);\.,:]/
 };
 
 

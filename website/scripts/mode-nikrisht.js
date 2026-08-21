@@ -26,10 +26,10 @@ ace.define("ace/mode/nikrisht_highlight_rules", [
                 },
                 // Single-line comments
                 {
-                    token: "comment.line.double-slash",
+                    token: "comment.line",
                     regex: "#.*$"
                 },
-                // Double-quoted strings
+                // Strings
                 {
                     token: "string",
                     regex: '"',
@@ -39,15 +39,17 @@ ace.define("ace/mode/nikrisht_highlight_rules", [
                         { defaultToken: "string" }
                     ]
                 },
-                // Numbers (Integers & Decimals)
+                // Numbers
                 {
                     token: "constant.numeric",
                     regex: "\\b[0-9]+(\\.[0-9]+)?\\b"
                 },
+                // Boolean
                 {
                     token: "constant.language.boolean",
                     regex: "\\b(true|false)\\b"
                 },
+                // Numeric constants
                 {
                     token: "constant.language",
                     regex: "\\b(null|infinity|nan)\\b"
@@ -57,7 +59,7 @@ ace.define("ace/mode/nikrisht_highlight_rules", [
                     token: "keyword",
                     regex: "\\b(else|loop|with|func|if|return|var|const)\\b"
                 },
-                // function
+                // Function
                 {
                     token: "entity.name.function",
                     regex: "[a-zA-Z_][a-zA-Z0-9_]*(?=\\s*\\()",
@@ -112,8 +114,8 @@ ace.define("ace/mode/nikrisht", [
 
     var Mode = function () {
         this.HighlightRules = NikrishtHighlightRules;
-        this.lineCommentStart = "//";
-        this.blockComment = { start: "/*", end: "*/" };
+        this.lineCommentStart = "#";
+        this.blockComment = { start: "#*", end: "*#" };
     };
     oop.inherits(Mode, TextMode);
 

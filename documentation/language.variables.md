@@ -1,17 +1,16 @@
 ### Variables
-Variables are identifiers used to store data. All variables are mutable and can be reassigned.
+Variables are identifiers that bind names to values.
 
 
+Declare a non-reassignable binding using `const`
 
-Declare a variable using `=`
 ```
-message = "Hello World"
+const x = 10;
 ```
-Reassign a value using `~`
-```
-quantity = 34
 
-quantity ~ 65
-quantity ~ "high" # Data type of the value does not matter
+Declare a reassignable binding using `var`
+
 ```
- 
+var y = true;
+y = false;
+```
