@@ -21,7 +21,7 @@ export function createInterpreter(source, host) {
         statements: [],
         locals: new Map(),
         diagnostics: [],
-        success: false,
+        success: true,
     };
 }
 
@@ -34,6 +34,18 @@ function hasErrors(interpreter) {
     return interpreter.diagnostics.some(diagnostic => diagnostic.type === "error");
 }
 
+/**
+ * Checks for errors and marks the interpreter as failed if present.
+ * @param {Interpreter} interpreter
+ * @returns {boolean}
+ */
+function failed(interpreter) {
+    if (hasErrors(interpreter)) {
+        interpreter.success = false;
+        return true;
+    }
+    return false;
+}
 
 /**
  * Interprets nikrisht code
@@ -43,21 +55,21 @@ export function interpret(interpreter) {
     /* Lexing */
     const lexer = createLexer(interpreter);
     lex(lexer);
-    if (hasErrors(interpreter)) return interpreter;
+    if (failed(interpreter)) return;
 
     /* Parsing */
     const parser = createParser(interpreter);
     parse(parser);
-    if (hasErrors(interpreter)) return interpreter;
+    if (failed(interpreter)) return;
 
     /* Resolving */
     const resolver = createResolver(interpreter);
     resolve(resolver);
-    if (hasErrors(interpreter)) return interpreter;
+    if (failed(interpreter)) return;
 
     /* Executing */
     const executor = createExecutor(interpreter);
     execute(executor);
-    if (!hasErrors(interpreter)) interpreter.success = true;
+    if (failed(interpreter)) return;
 }
 

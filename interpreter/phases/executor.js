@@ -355,7 +355,7 @@ function executeExpression(executor, expression) {
         }
 
         case "FunctionExpression":
-            return createFunction(expression, executor.environment);
+            return createFunction(executor.interpreter, expression, executor.environment);
 
         case "MemberExpression": {
             const subject = executeExpression(executor, expression.object);
@@ -449,7 +449,7 @@ export function executeStatement(executor, statement) {
         }
 
         case "FunctionDeclaration": {
-            const fn = createFunction(statement, executor.environment);
+            const fn = createFunction(executor.interpreter, statement, executor.environment);
 
             declare(executor.environment, getLexeme(executor.interpreter, statement.name), fn);
             break;

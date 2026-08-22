@@ -41,6 +41,15 @@ function peek(lexer) {
 }
 
 /**
+ * Looks at the character one position past the current one, without consuming it.
+ * @param {Lexer} lexer
+ * @returns {string | undefined} the char after current, or "" if past the end
+ */
+function peekNext(lexer) {
+    return lexer.interpreter.source[lexer.current + 1];
+}
+
+/**
  * Consume and return the current character.
  *
  * @param {Lexer} lexer Lexer state.
@@ -180,15 +189,11 @@ function lexNumber(lexer) {
         consume(lexer);
     }
 
-    if (check(lexer, ".")) {
-        consume(lexer)
-
-        if (isAtEnd(lexer)) {
-            error(lexer, "Invalid number.")
-        }
+    if (check(lexer, ".") && isDigit(peekNext(lexer))) {
+        consume(lexer);
 
         while (isDigit(peek(lexer))) {
-            consume(lexer)
+            consume(lexer);
         }
     }
 
@@ -248,7 +253,13 @@ function lexToken(lexer) {
             break;
         case ".":
             if (match(lexer, ".")) {
-                addToken(lexer, "DotDot")
+                if (match(lexer, "<")) {
+                    addToken(lexer, "DotDotLessThan")
+                } else if (match(lexer, ">")) {
+                    addToken(lexer, "DotDotMoreThan")
+                } else {
+                    addToken(lexer, "DotDot")
+                }
             } else {
                 addToken(lexer, "Dot")
             }
@@ -304,6 +315,12 @@ function lexToken(lexer) {
         case "\t":
         case "\n":
             // Skip whitespace
+            break;
+        case "#":
+            // Skip comments
+            while (!isAtEnd(lexer) && !check(lexer, "\n")) {
+                consume(lexer);
+            }
             break;
         case '"':
             lexString(lexer);

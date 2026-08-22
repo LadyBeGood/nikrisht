@@ -15,7 +15,7 @@
         "interpreter"
     ],
     "bin": {
-        "uki": "./interpreter/uki.js"
+        "nki": "./interpreter/host/node.js"
     },
     "bugs": {
         "url": "https://github.com/LadyBeGood/nikrisht/issues"

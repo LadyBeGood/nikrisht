@@ -79,6 +79,8 @@
  *          | "RightCurlyBracket"
  *          | "Dot"
  *          | "DotDot"
+ *          | "DotDotMoreThan"
+ *          | "DotDotLessThan"
  *          | "DotDotDot"
  *          | "Comma"
  *          | "Colon"

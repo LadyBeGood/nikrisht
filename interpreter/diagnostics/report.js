@@ -1,8 +1,8 @@
 
 // @ts-check
 
-import { getRange } from "../core/range";
-import { LexingError, ParsingError, ResolvingError, ExecutionError, ImplementationError } from "./classes"
+import { getRange } from "../core/range.js";
+import { LexingError, ParsingError, ResolvingError, ExecutionError, ImplementationError } from "./classes.js"
 
 /**
  * Why didn't I put this inside `types.js`? Because TypeScript is stupid and won't let
