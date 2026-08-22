@@ -5,9 +5,10 @@ import "../types.js";
 import { is_Array, is_Boolean, is_Function, is_Null, is_Number, is_Object, is_String, type } from "../core/guards.js";
 import { natives } from "../core/natives.js";
 import { assign, assignAt, createEnvironment, declare, lookup, lookupAt } from "../core/environment.js";
-import { createFunction } from "../core/function.js";
+import { create_Function } from "../core/function.js";
 import { ExitSignal, ReturnSignal, SkipSignal } from "../core/signals.js";
 import { getLexeme } from "../core/token.js";
+import { ExecutionError } from "../diagnostics/classes.js";
 
 
 
@@ -208,17 +209,17 @@ function executeExpression(executor, expression) {
         }
 
         case "AssignmentExpression": {
-            if (expression.left.type === "VariableExpression") {
-                const name = getLexeme(executor.interpreter, expression.left.name);
+            if (expression.left.type === "IdentifierExpression") {
+                const name = expression.left.lexeme;
                 const value = executeExpression(executor, expression);
                 const distance = executor.interpreter.locals.get(expression);
-    
+
                 if (distance !== undefined) {
                     assignAt(executor.environment, distance, name, value);
                 } else {
                     assign(executor.environment, name, value);
                 }
-    
+
                 return value;
             } else if (expression.left.type === "MemberExpression") {
                 const subject = executeExpression(executor, expression.left.object);
@@ -355,7 +356,7 @@ function executeExpression(executor, expression) {
         }
 
         case "FunctionExpression":
-            return createFunction(executor.interpreter, expression, executor.environment);
+            return create_Function(expression, executor.environment);
 
         case "MemberExpression": {
             const subject = executeExpression(executor, expression.object);
@@ -449,9 +450,9 @@ export function executeStatement(executor, statement) {
         }
 
         case "FunctionDeclaration": {
-            const fn = createFunction(executor.interpreter, statement, executor.environment);
+            const fn = create_Function(statement, executor.environment);
 
-            declare(executor.environment, getLexeme(executor.interpreter, statement.name), fn);
+            declare(executor.environment, statement.name.lexeme, fn);
             break;
         }
 
@@ -531,5 +532,13 @@ function executeStatements(executor, statements) {
  * @param {Executor} executor 
  */
 export function execute(executor) {
-    executeStatements(executor, executor.interpreter.statements);
+    try {
+        executeStatements(executor, executor.interpreter.statements);
+    } catch (thrown) {
+        if (thrown instanceof ExecutionError) {
+            return;
+        }
+
+        throw thrown;
+    }
 }

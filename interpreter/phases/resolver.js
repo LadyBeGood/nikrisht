@@ -1,7 +1,7 @@
 // @ts-check
 
-import { getLexeme } from "../core/token.js";
-import { ImplementationError } from "../diagnostics/classes.js";
+import { ImplementationError, ResolvingError } from "../diagnostics/classes.js";
+import { error } from "../diagnostics/report.js";
 import "../types.js";
 
 /**
@@ -48,7 +48,7 @@ function endScope(resolver) {
  */
 function peek(resolver) {
     if (resolver.scopes.length === 0) {
-        throw 0;
+        throw new ImplementationError("peek() called on resolver with no active scope.");
     } else {
         return resolver.scopes[resolver.scopes.length - 1];
     }
@@ -57,7 +57,7 @@ function peek(resolver) {
 /**
  * 
  * @param {Resolver} resolver 
- * @param {string} name 
+ * @param {IdentifierExpression} name 
  */
 function declare(resolver, name) {
     if (resolver.scopes.length === 0) {
@@ -66,24 +66,24 @@ function declare(resolver, name) {
 
     const scope = peek(resolver);
 
-    if (scope.has(name)) {
-        throw 0;
+    if (scope.has(name.lexeme)) {
+        error(resolver.interpreter, name, `Variable "${name.lexeme}" is already declared in this scope.`, "resolver");
     }
 
-    scope.set(name, false);
+    scope.set(name.lexeme, false);
 }
 
 /**
  * 
  * @param {Resolver} resolver 
- * @param {string} name 
+ * @param {IdentifierExpression} name 
  */
 function define(resolver, name) {
     if (resolver.scopes.length === 0) {
         return;
     }
 
-    peek(resolver).set(name, true);
+    peek(resolver).set(name.lexeme, true);
 }
 
 /**
@@ -104,21 +104,20 @@ function resolveLocal(resolver, node, name) {
 /**
  * 
  * @param {Resolver} resolver 
- * @param {{ name: Token | undefined, parameters: Token[], body: Statement }} fn 
+ * @param {FunctionDeclaration | FunctionExpression} fn 
  */
 function resolveFunction(resolver, fn) {
     if (fn.name !== undefined) {
-        declare(resolver, getLexeme(resolver.interpreter, fn.name));
-        define(resolver, getLexeme(resolver.interpreter, fn.name));
+        declare(resolver, fn.name);
+        define(resolver, fn.name);
     }
-
 
     resolver.functionDepth++;
     beginScope(resolver);
 
     for (const parameter of fn.parameters) {
-        declare(resolver, getLexeme(resolver.interpreter, parameter));
-        define(resolver, getLexeme(resolver.interpreter, parameter));
+        declare(resolver, parameter);
+        define(resolver, parameter);
     }
 
     resolveStatement(resolver, fn.body);
@@ -135,13 +134,15 @@ function resolveFunction(resolver, fn) {
  */
 function resolveExpression(resolver, expression) {
     switch (expression.type) {
-        case "VariableExpression":
+        case "IdentifierExpression":
             if (resolver.scopes.length > 0) {
-                if (!peek(resolver).get(getLexeme(resolver.interpreter, expression.name))) {
-                    throw 1;
+                const scope = peek(resolver);
+
+                if (scope.has(expression.lexeme) && scope.get(expression.lexeme) === false) {
+                    error(resolver.interpreter, expression, `Cannot read local variable "${expression.lexeme}" in its own initializer.`, "resolver")
                 }
             }
-            resolveLocal(resolver, expression, getLexeme(resolver.interpreter, expression.name));
+            resolveLocal(resolver, expression, expression.lexeme);
             break;
         case "FunctionExpression":
             resolveFunction(resolver, expression);
@@ -182,6 +183,9 @@ function resolveExpression(resolver, expression) {
                 resolveExpression(resolver, expression.values[i]);
             }
             break;
+        case "RangeExpression":
+            resolveExpression(resolver, expression.left)
+            resolveExpression(resolver, expression.right)
         case "LiteralExpression":
             // Eat five star, do nothing :)
             break;
@@ -211,18 +215,18 @@ function resolveStatement(resolver, statement) {
             if (statement.elseBranch !== undefined) resolveStatement(resolver, statement.elseBranch);
             break;
         case "ReturnStatement":
-            if (resolver.functionDepth <= 0) throw 0;
+            if (resolver.functionDepth <= 0) error(resolver.interpreter, statement, `Cannot use "return" outside of a function.`, "resolver");
             if (statement.expression) resolveExpression(resolver, statement.expression);
             break;
         case "ExitStatement":
         case "SkipStatement":
-            if (resolver.loopDepth <= 0) throw 0;
+            if (resolver.loopDepth <= 0) error(resolver.interpreter, statement, `Cannot use "${statement.type === "ExitStatement" ? "exit" : "skip"}" outside of a loop.`, "resolver");
             break;
         case "VariableDeclaration":
         case "ConstantDeclaration":
-            declare(resolver, getLexeme(resolver.interpreter, statement.name));
+            declare(resolver, statement.name);
             if (statement.initialiser !== undefined) resolveExpression(resolver, statement.initialiser);
-            define(resolver, getLexeme(resolver.interpreter, statement.name));
+            define(resolver, statement.name);
             break;
         case "FunctionDeclaration":
             resolveFunction(resolver, statement);
@@ -233,13 +237,13 @@ function resolveStatement(resolver, statement) {
             beginScope(resolver);
 
             if (statement.binding?.index) {
-                declare(resolver, getLexeme(resolver.interpreter, statement.binding.index));
-                define(resolver, getLexeme(resolver.interpreter, statement.binding.index));
+                declare(resolver, statement.binding.index);
+                define(resolver, statement.binding.index);
             }
 
             if (statement.binding?.value) {
-                declare(resolver, getLexeme(resolver.interpreter, statement.binding.value));
-                define(resolver, getLexeme(resolver.interpreter, statement.binding.value));
+                declare(resolver, statement.binding.value);
+                define(resolver, statement.binding.value);
             }
 
             resolver.loopDepth++;
@@ -271,5 +275,13 @@ function resolveStatements(resolver, statements) {
  * @param {Resolver} resolver 
  */
 export function resolve(resolver) {
-    resolveStatements(resolver, resolver.interpreter.statements);
+    try {
+        resolveStatements(resolver, resolver.interpreter.statements);
+    } catch (thrown) {
+        if (thrown instanceof ResolvingError) {
+            return;
+        }
+
+        throw thrown;
+    }
 }

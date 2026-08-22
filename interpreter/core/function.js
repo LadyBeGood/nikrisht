@@ -4,18 +4,16 @@ import "../types.js";
 import { executeStatement } from "../phases/executor.js";
 import { createEnvironment, declare } from "./environment.js";
 import { ReturnSignal } from "./signals.js";
-import { getLexeme } from "./token.js";
 
 
 /**
  * Creates a runtime function object for a user-defined function.
  *
- * @param {Interpreter} interpreter
  * @param {FunctionDeclaration | FunctionExpression} declaration
  * @param {Environment} closure
  * @returns {_Function}
  */
-export function createFunction(interpreter, declaration, closure) {
+export function create_Function(declaration, closure) {
     return {
         arity: declaration.parameters.length,
         declaration,
@@ -25,7 +23,7 @@ export function createFunction(interpreter, declaration, closure) {
             const environment = createEnvironment(closure);
 
             for (let i = 0; i < declaration.parameters.length; i++) {
-                declare(environment, getLexeme(interpreter, declaration.parameters[i]), args[i]);
+                declare(environment, declaration.parameters[i].lexeme, args[i]);
             }
 
             try {

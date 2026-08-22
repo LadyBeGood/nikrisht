@@ -181,6 +181,16 @@
  */
 
 /**
+ * @typedef {Object} RangeExpression
+ * @property {"RangeExpression"} type
+ * @property {Expression} left
+ * @property {Token} operator
+ * @property {Expression} right
+ * @property {number} start
+ * @property {number} end
+ */
+
+/**
  * @typedef {Object} GroupingExpression
  * @property {"GroupingExpression"} type
  * @property {Expression} expression
@@ -218,9 +228,9 @@
  */
 
 /**
- * @typedef {Object} VariableExpression
- * @property {"VariableExpression"} type
- * @property {Token} name
+ * @typedef {Object} IdentifierExpression
+ * @property {"IdentifierExpression"} type
+ * @property {string} lexeme
  * @property {number} start
  * @property {number} end
  */
@@ -263,8 +273,8 @@
 /**
  * @typedef {Object} FunctionExpression
  * @property {"FunctionExpression"} type
- * @property {Token | undefined} name
- * @property {Token[]} parameters
+ * @property {IdentifierExpression | undefined} name
+ * @property {IdentifierExpression[]} parameters
  * @property {Statement} body
  * @property {number} start
  * @property {number} end
@@ -275,10 +285,11 @@
 /**
  * @typedef { LiteralExpression
  *          | UnaryExpression
+ *          | RangeExpression
  *          | GroupingExpression
  *          | LogicalExpression
  *          | CallExpression
- *          | VariableExpression
+ *          | IdentifierExpression
  *          | AssignmentExpression
  *          | MemberExpression
  *          | ArrayExpression
@@ -305,7 +316,7 @@
 /**
  * @typedef {Object} VariableDeclaration
  * @property {"VariableDeclaration"} type
- * @property {Token} name
+ * @property {IdentifierExpression} name
  * @property {Expression | undefined} initialiser
  * @property {number} start
  * @property {number} end
@@ -314,7 +325,7 @@
 /**
  * @typedef {Object} ConstantDeclaration
  * @property {"ConstantDeclaration"} type
- * @property {Token} name
+ * @property {IdentifierExpression} name
  * @property {Expression} initialiser
  * @property {number} start
  * @property {number} end
@@ -323,8 +334,8 @@
 /**
  * @typedef {Object} FunctionDeclaration
  * @property {"FunctionDeclaration"} type
- * @property {Token} name
- * @property {Token[]} parameters
+ * @property {IdentifierExpression} name
+ * @property {IdentifierExpression[]} parameters
  * @property {Statement} body
  * @property {number} start
  * @property {number} end
@@ -365,8 +376,8 @@
 /**
  * @typedef {Object} Binding
  * @property {"Binding"} type
- * @property {Token | undefined} index
- * @property {Token | undefined} value
+ * @property {IdentifierExpression | undefined} index
+ * @property {IdentifierExpression | undefined} value
  * @property {number} start
  * @property {number} end
  */

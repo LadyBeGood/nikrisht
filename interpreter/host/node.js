@@ -21,9 +21,9 @@ async function interpretFile(path) {
     }
 
     const interpreter = createInterpreter(source, "node");
-    const lexer = createLexer(interpreter);
-    // interpret(interpreter);
-    lex(lexer);
+    // const lexer = createLexer(interpreter);
+    interpret(interpreter);
+    // lex(lexer);
     console.log(JSON.stringify(interpreter, null, 4));
 
 }
@@ -42,4 +42,4 @@ export async function main() {
 }
 
 
-main();
+main()

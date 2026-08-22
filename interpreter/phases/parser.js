@@ -19,7 +19,6 @@ export function createParser(interpreter) {
 }
 
 
-
 /**
  * 
  * @param {Parser} parser Parser state. 
@@ -157,7 +156,16 @@ function synchronize(parser) {
     }
 }
 
-
+/**
+ * 
+ * @param {Parser} parser 
+ * @param {string} [message] 
+ * @returns {IdentifierExpression}
+ */
+function parseIdentifierExpression(parser, message = "Expected Identifier") {
+    const token = consume(parser, "Identifier", message);
+    return { type: "IdentifierExpression", lexeme: getLexeme(parser.interpreter, token), start: token.start, end: token.end };
+}
 
 /**
  * 
@@ -182,8 +190,7 @@ function parsePrimaryExpression(parser) {
         return { type: "LiteralExpression", value: getLiteral(parser.interpreter, token), start: token.start, end: token.end };
     }
     else if (check(parser, "Identifier")) {
-        const token = consume(parser);
-        return { type: "VariableExpression", name: token, start: token.start, end: token.end };
+        return parseIdentifierExpression(parser);
     }
     else if (check(parser, "LeftRoundBracket")) {
         const start = consume(parser).start;
@@ -229,7 +236,7 @@ function parsePrimaryExpression(parser) {
         const start = consume(parser).start;
         let name;
         if (check(parser, "Identifier")) {
-            name = consume(parser);
+            name = (parseIdentifierExpression(parser));
         }
 
         consume(parser, "LeftRoundBracket", "Expected '(' after 'func'.");
@@ -238,7 +245,7 @@ function parsePrimaryExpression(parser) {
 
         if (!check(parser, "RightRoundBracket")) {
             do {
-                parameters.push(consume(parser, "Identifier", "Expected parameter name."));
+                parameters.push(parseIdentifierExpression(parser, "Expected parameter name."));
             } while (match(parser, "Comma") && !check(parser, "RightRoundBracket"));
         }
 
@@ -352,6 +359,24 @@ function parseUnaryExpression(parser) {
 }
 
 
+/**
+ * 
+ * @param {Parser} parser Parser state. 
+ * @returns {Expression}
+ */
+function parseRangeExpression(parser) {
+    const expression = parseUnaryExpression(parser);
+
+    if (check(parser, "DotDot", "DotDotLessThan", "DotDotMoreThan")) {
+        const operator = consume(parser);
+        const right = parseUnaryExpression(parser);
+
+        return { type: "RangeExpression", left: expression, operator, right, start: expression.start, end: right.end };
+    }
+
+    return expression;
+}
+
 
 /**
  * 
@@ -359,11 +384,11 @@ function parseUnaryExpression(parser) {
  * @returns {Expression}
  */
 function parseMultiplicationAndDivisionExpression(parser) {
-    let expression = parseUnaryExpression(parser);
+    let expression = parseRangeExpression(parser);
 
     while (check(parser, "Slash", "Asterisk")) {
         const operator = consume(parser);
-        const right = parseUnaryExpression(parser);
+        const right = parseRangeExpression(parser);
 
         expression = { type: "BinaryExpression", left: expression, right, operator, start: expression.start, end: right.end };
     }
@@ -572,17 +597,17 @@ function parseBinding(parser) {
 
     // with i
     if (check(parser, "Identifier")) {
-        value = consume(parser);
+        value = parseIdentifierExpression(parser);
         start = value.start;
         end = value.end;
     } else {
         // with [i, value]
         start = consume(parser, "LeftSquareBracket", "Expected '[' after 'with'").start;
 
-        index = consume(parser, "Identifier", "Expected index variable name");
+        index = parseIdentifierExpression(parser, "Expected index variable name");
 
         if (match(parser, "Comma")) {
-            value = consume(parser, "Identifier", "Expected value variable name");
+            value = parseIdentifierExpression(parser, "Expected value variable name");
         }
 
         end = consume(parser, "RightSquareBracket", "Expected ']' after loop variables").end;
@@ -750,7 +775,7 @@ function parseStatement(parser) {
  */
 function parseVariableDeclaration(parser) {
     const start = consume(parser).start;
-    const name = consume(parser, "Identifier", "Expected variable name.");
+    const name = parseIdentifierExpression(parser, "Expected variable name.");
     let initialiser;
 
     if (match(parser, "Equal")) initialiser = parseExpression(parser);
@@ -772,7 +797,7 @@ function parseVariableDeclaration(parser) {
  */
 function parseConstantDeclaration(parser) {
     const start = consume(parser).start;
-    const name = consume(parser, "Identifier", "Expected constant name.");
+    const name = parseIdentifierExpression(parser, "Expected constant name.");
 
     consume(parser, "Equal", "Constants must be initialised.");
 
@@ -796,14 +821,14 @@ function parseConstantDeclaration(parser) {
  */
 function parseFunctionDeclaration(parser) {
     const start = consume(parser).start;
-    const name = consume(parser, "Identifier", "Expected function name.");
+    const name = parseIdentifierExpression(parser, "Expected function name.");
 
     consume(parser, "LeftRoundBracket", "Expected '(' after function name");
 
     const parameters = [];
     if (!check(parser, "RightRoundBracket")) {
         do {
-            parameters.push(consume(parser, "Identifier", "Expected parameter name."));
+            parameters.push(parseIdentifierExpression(parser, "Expected parameter name."));
         } while (match(parser, "Comma"));
     }
 
