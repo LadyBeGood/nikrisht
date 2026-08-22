@@ -1,5 +1,7 @@
 // @ts-check
 
+import { ImplementationError } from "../diagnostics/classes.js";
+import { error } from "../diagnostics/report.js";
 import "../types.js";
 
 /**
@@ -27,18 +29,20 @@ export function declare(environment, name, value, reassignable = true) {
     environment.values.set(name, { value, reassignable });
 }
 
+
 /**
- *  
+ * 
+ * @param {Interpreter} interpreter
  * @param {Environment} environment 
- * @param {string} name 
+ * @param {IdentifierExpression} node 
  * @param {_Type} value 
  */
-export function assign(environment, name, value) {
-    const varInfo = environment.values.get(name);
+export function assign(interpreter, environment, node, value) {
+    const varInfo = environment.values.get(node.lexeme);
 
     if (varInfo !== undefined) {
         if (!varInfo.reassignable) {
-            throw new Error(`Cannot assign to constant '${name}'`);
+            error(interpreter, node, `Cannot assign to constant "${node.lexeme}".`, "executor");
         }
 
         varInfo.value = value;
@@ -46,31 +50,33 @@ export function assign(environment, name, value) {
     }
 
     if (environment.enclosing !== undefined) {
-        assign(environment.enclosing, name, value);
+        assign(interpreter, environment.enclosing, node, value);
         return;
     }
 
-    throw new Error(`Undefined variable '${name}'`);
+    error(interpreter, node, `Undefined variable "${node.lexeme}".`, "executor");
 }
+
+
 
 
 /**
  * 
+ * @param {Interpreter} interpreter
  * @param {Environment} environment 
+ * @param {IdentifierExpression} node
  * @param {number} distance 
- * @param {string} name 
  * @param {_Type} value 
  */
-export function assignAt(environment, distance, name, value) {
-    const varInfo = (ancestor(environment, distance).values.get(name));
-    
-    if (varInfo === undefined) {
-        throw 0; // this will never happen, only here for stupid typescript
-    }
-    
-    if (!varInfo.reassignable) {
-        throw "BRO THIS IS A CONSTANT BRO";
+export function assignAt(interpreter, environment, node, distance, value) {
+    const varInfo = ancestor(environment, distance).values.get(node.lexeme);
 
+    if (varInfo === undefined) {
+        throw new ImplementationError(`assignAt() found no variable "${node.lexeme}" at distance ${distance}.`);
+    }
+
+    if (!varInfo.reassignable) {
+        error(interpreter, node, `Cannot assign to constant "${node.lexeme}".`, "executor");
     }
 
     varInfo.value = value;
@@ -80,34 +86,42 @@ export function assignAt(environment, distance, name, value) {
 /**
  * Resolves a variable by searching the environment chain.
  * 
+ * @param {Interpreter} interpreter 
  * @param {Environment} environment 
- * @param {string} name 
+ * @param {IdentifierExpression} node 
  * @returns {_Type}
  */
-export function lookup(environment, name) {
-    const varInfo = environment.values.get(name);
+export function lookup(interpreter, environment, node) {
+    const varInfo = environment.values.get(node.lexeme);
 
     if (varInfo !== undefined) {
         return varInfo.value;
     }
 
     if (environment.enclosing !== undefined) {
-        return lookup(environment.enclosing, name);
+        return lookup(interpreter, environment.enclosing, node);
     }
 
-    throw new Error(`Undefined variable "${name}"`);
+    error(interpreter, node, `Undefined variable "${node.lexeme}".`, "executor");
 }
 
 /**
  * Retrieves a variable value from an environment at a known scope distance.
  * @param {Environment} environment 
  * @param {number} distance 
- * @param {string} name 
+ * @param {IdentifierExpression} node 
  * @returns {_Type}
  */
-export function lookupAt(environment, distance, name) {
-    return /** @type {{ value: _Type; reassignable: boolean; }} */ (ancestor(environment, distance).values.get(name)).value;
+export function lookupAt(environment, distance, node) {
+    const varInfo = ancestor(environment, distance).values.get(node.lexeme);
+
+    if (varInfo === undefined) {
+        throw new ImplementationError(`lookupAt() found no variable "${node.lexeme}" at distance ${distance}.`);
+    }
+
+    return varInfo.value;
 }
+
 
 /**
  * 
@@ -120,7 +134,7 @@ export function ancestor(environment, distance) {
 
     for (let i = 0; i < distance; i++) {
         if (current.enclosing === undefined) {
-            throw new Error("Invalid environment distance");
+            throw new ImplementationError("Invalid environment distance.");
         }
 
         current = current.enclosing;

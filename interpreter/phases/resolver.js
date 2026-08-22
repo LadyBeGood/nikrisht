@@ -186,6 +186,7 @@ function resolveExpression(resolver, expression) {
         case "RangeExpression":
             resolveExpression(resolver, expression.left)
             resolveExpression(resolver, expression.right)
+            break;
         case "LiteralExpression":
             // Eat five star, do nothing :)
             break;
@@ -234,6 +235,9 @@ function resolveStatement(resolver, statement) {
         case "LoopStatement":
             if (statement.iterable !== undefined) resolveExpression(resolver, statement.iterable);
 
+            // The resolver unconditionally creates a scope, irrespective of the fact that 
+            // there may not be any bindings for the loop. This is a common cause of error in executor.
+            // Make sure to always create a new environment for every loop construct.
             beginScope(resolver);
 
             if (statement.binding?.index) {

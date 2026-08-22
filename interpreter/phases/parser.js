@@ -502,7 +502,7 @@ function parseLogicalOrExpression(parser) {
 function parseAssignmentExpression(parser) {
     const expression = parseLogicalOrExpression(parser)
 
-    if (check(parser, "Equal")) {
+    if (match(parser, "Equal")) {
         const right = parseAssignmentExpression(parser);
         return { type: "AssignmentExpression", left: expression, right, start: expression.start, end: right.end };
     }

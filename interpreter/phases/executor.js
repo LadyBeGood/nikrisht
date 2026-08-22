@@ -8,7 +8,8 @@ import { assign, assignAt, createEnvironment, declare, lookup, lookupAt } from "
 import { create_Function } from "../core/function.js";
 import { ExitSignal, ReturnSignal, SkipSignal } from "../core/signals.js";
 import { getLexeme } from "../core/token.js";
-import { ExecutionError } from "../diagnostics/classes.js";
+import { ExecutionError, ImplementationError } from "../diagnostics/classes.js";
+import { error } from "../diagnostics/report.js";
 
 
 
@@ -72,7 +73,8 @@ function executeLoopStatement(executor, statement) {
     // loop
     if (statement.iterable === undefined) {
         while (true) {
-            if (executeLoopBody(executor, executor.environment, statement.body)) break;
+            const environment = createEnvironment(executor.environment);
+            if (executeLoopBody(executor, environment, statement.body)) break;
         }
 
         return;
@@ -91,10 +93,10 @@ function executeLoopStatement(executor, statement) {
             const environment = createEnvironment(executor.environment);
 
             if (statement.binding?.value !== undefined) {
-                declare(environment, getLexeme(executor.interpreter, statement.binding.value), i);
+                declare(environment, statement.binding.value.lexeme, i);
             }
 
-            if (executeLoopBody(executor, executor.environment, statement.body)) break;
+            if (executeLoopBody(executor, environment, statement.body)) break;
         }
     }
 
@@ -105,7 +107,8 @@ function executeLoopStatement(executor, statement) {
         }
 
         while (executeExpression(executor, statement.iterable) === true) {
-            if (executeLoopBody(executor, executor.environment, statement.body)) break;
+            const environment = createEnvironment(executor.environment);
+            if (executeLoopBody(executor, environment, statement.body)) break;
         }
     }
 
@@ -123,14 +126,14 @@ function executeLoopStatement(executor, statement) {
 
             if (statement.binding?.index !== undefined) {
                 // 1-based index
-                declare(environment, getLexeme(executor.interpreter, statement.binding.index), i + 1);
+                declare(environment, statement.binding.index.lexeme, i + 1);
             }
 
             if (statement.binding?.value !== undefined) {
-                declare(environment, getLexeme(executor.interpreter, statement.binding.value), iterable[i]);
+                declare(environment, statement.binding.value.lexeme, iterable[i]);
             }
 
-            if (executeLoopBody(executor, executor.environment, statement.body)) break;
+            if (executeLoopBody(executor, environment, statement.body)) break;
         }
     }
 
@@ -141,15 +144,15 @@ function executeLoopStatement(executor, statement) {
 
             if (statement.binding?.index !== undefined) {
                 // key binding
-                declare(environment, getLexeme(executor.interpreter, statement.binding.index), key);
+                declare(environment, statement.binding.index.lexeme, key);
             }
 
             if (statement.binding?.value !== undefined) {
                 // value binding
-                declare(environment, getLexeme(executor.interpreter, statement.binding.value), value);
+                declare(environment, statement.binding.value.lexeme, value);
             }
 
-            if (executeLoopBody(executor, executor.environment, statement.body)) break;
+            if (executeLoopBody(executor, environment, statement.body)) break;
         }
     }
 
@@ -170,10 +173,10 @@ function executeLoopStatement(executor, statement) {
             const environment = createEnvironment(executor.environment);
 
             if (statement.binding?.value !== undefined) {
-                declare(environment, getLexeme(executor.interpreter, statement.binding.value), value);
+                declare(environment, statement.binding.value.lexeme, value);
             }
 
-            if (executeLoopBody(executor, executor.environment, statement.body)) break;
+            if (executeLoopBody(executor, environment, statement.body)) break;
         }
     }
 
@@ -197,27 +200,25 @@ function executeExpression(executor, expression) {
         case "GroupingExpression":
             return executeExpression(executor, expression.expression);
 
-        case "VariableExpression": {
-            const name = getLexeme(executor.interpreter, expression.name);
+        case "IdentifierExpression": {
             const distance = executor.interpreter.locals.get(expression);
 
             if (distance !== undefined) {
-                return lookupAt(executor.environment, distance, name);
+                return lookupAt(executor.environment, distance, expression);
             } else {
-                return lookup(executor.globals, name);
+                return lookup(executor.interpreter, executor.globals, expression);
             }
         }
 
         case "AssignmentExpression": {
             if (expression.left.type === "IdentifierExpression") {
-                const name = expression.left.lexeme;
-                const value = executeExpression(executor, expression);
+                const value = executeExpression(executor, expression.right);
                 const distance = executor.interpreter.locals.get(expression);
 
                 if (distance !== undefined) {
-                    assignAt(executor.environment, distance, name, value);
+                    assignAt(executor.interpreter, executor.environment, expression.left, distance,  value);
                 } else {
-                    assign(executor.environment, name, value);
+                    assign(executor.interpreter, executor.environment, expression.left, value);
                 }
 
                 return value;
@@ -227,11 +228,11 @@ function executeExpression(executor, expression) {
 
                 if (is_Array(subject)) {
                     if (!is_Number(index)) {
-                        throw 0;
+                        throw 1;
                     }
 
                     if (index < 1 || index > subject.length) {
-                        throw 0;
+                        throw 2;
                     }
 
                     const value = executeExpression(executor, expression.right);
@@ -243,10 +244,10 @@ function executeExpression(executor, expression) {
                     return value;
                 }
 
-                throw 0;
+                throw 3;
             }
 
-            throw 0;
+            throw 4;
         }
 
 
@@ -279,13 +280,13 @@ function executeExpression(executor, expression) {
             switch (expression.operator.type) {
                 case "Minus":
                     if (!is_Number(operand)) {
-                        throw 0;
+                        throw 5;
                     } else {
                         return -operand;
                     }
                 case "ExclamationMark":
                     if (!is_Boolean(operand)) {
-                        throw 0;
+                        throw 6;
                     } else {
                         throw !operand;
                     }
@@ -295,10 +296,10 @@ function executeExpression(executor, expression) {
         }
         case "BinaryExpression": {
             const left = executeExpression(executor, expression.left);
-            const right = executeExpression(executor, expression.left);
+            const right = executeExpression(executor, expression.right);
 
             switch (expression.operator.type) {
-                case "Equal":
+                case "EqualEqual":
                     return left === right;
                 case "ExclamationMarkEqual":
                     return left !== right;
@@ -308,20 +309,20 @@ function executeExpression(executor, expression) {
                             return left + right;
                         }
 
-                        throw 0;
+                        throw 7;
                     } else if (is_String(left)) {
                         if (is_String(right)) {
                             return left + right;
                         }
 
-                        throw 0;
+                        throw 8;
                     }
 
-                    throw 0;
+                    throw 9;
             }
 
             if (!is_Number(left) || !is_Number(right)) {
-                throw 0;
+                throw 10;
             }
 
             switch (expression.operator.type) {
@@ -332,14 +333,14 @@ function executeExpression(executor, expression) {
                 case "LessThan": return left < right;
                 case "MoreThanEqual": return left >= right;
                 case "LessThanEqual": return left <= right;
-                default: throw 0;
+                default: throw new Error(JSON.stringify(expression, null, 4));
             }
         }
 
         case "CallExpression": {
             const callee = executeExpression(executor, expression.callee);
             if (!is_Function(callee)) {
-                throw 0;
+                throw 12;
             }
 
             const args = [];
@@ -349,7 +350,7 @@ function executeExpression(executor, expression) {
             }
 
             if (args.length != callee.arity) {
-                throw 0;
+                throw 13;
             }
 
             return callee.call(executor, args);
@@ -364,11 +365,11 @@ function executeExpression(executor, expression) {
 
             if (is_Array(subject) || is_String(subject)) {
                 if (!is_Number(index)) {
-                    throw 0;
+                    throw 14;
                 }
 
                 if (index < 1 || index > subject.length) {
-                    throw 0;
+                    throw 15;
                 }
 
                 return subject[index - 1];
@@ -376,20 +377,20 @@ function executeExpression(executor, expression) {
                 const value = subject.get(index);
 
                 if (value === undefined) {
-                    throw 0;
+                    return null;
                 }
 
                 return value;
             }
 
-            throw 0;
+            throw 17;
         }
 
         case "LogicalExpression": {
             const left = executeExpression(executor, expression.left);
 
             if (!is_Boolean(left)) {
-                throw 0;
+                throw 18;
             }
 
             switch (expression.operator.type) {
@@ -405,21 +406,75 @@ function executeExpression(executor, expression) {
 
                 default:
                     /** @type {never} */
-                    throw 0;
+                    throw 19;
             }
 
             const right = executeExpression(executor, expression.right);
 
             if (!is_Boolean(right)) {
-                throw 0;
+                throw 20;
             }
 
             return right;
         }
 
+        case "RangeExpression": {
+            const start = executeExpression(executor, expression.left);
+            const end = executeExpression(executor, expression.right);
+
+            if (!is_Number(start) || !is_Number(end)) {
+                error(executor.interpreter, expression, "Both operands of the range operator should be numbers", "executor");
+            }
+
+            /** @type {_Type[]} */
+            const array = [];
+            for (let i = start; i < end; i++) {
+                array.push(i);
+            }
+            return array;
+            // const ascending = start <= end;
+            // const step = ascending ? 1 : -1;
+            // const operatorType = expression.operator.type;
+
+            // let current = start;
+            // let done = false;
+
+            // return {
+            //     arity: 0,
+            //     call() {
+            //         const environment = createEnvironment(executor.environment);
+            //         const previous = executor.environment;
+            //         executor.environment = environment;
+
+            //         try {
+            //             if (done) return null;
+
+            //             if (operatorType === "DotDotLessThan") {
+            //                 // exclusive of the end when counting up: 0..<3 -> 0, 1, 2, null
+            //                 if (current >= end) { done = true; return null; }
+            //             } else if (operatorType === "DotDotMoreThan") {
+            //                 // exclusive of the end when counting down: 3..>1 -> 3, 2, null
+            //                 if (current <= end) { done = true; return null; }
+            //             } else {
+            //                 // ".." is inclusive of both ends, direction inferred from start/end
+            //                 if (ascending ? current > end : current < end) { done = true; return null; }
+            //             }
+
+            //             const value = current;
+            //             current += step;
+            //             return value;
+            //         } finally {
+            //             executor.environment = previous;
+            //         }
+                    
+            //     }
+            // };
+
+
+        }
 
         default:
-            throw 0;
+            throw new ImplementationError(`Unhandled expression:\n${JSON.stringify(expression, null, 4)}`);
     }
 }
 
@@ -439,13 +494,13 @@ export function executeStatement(executor, statement) {
                 ? executeExpression(executor, statement.initialiser)
                 : null;
 
-            declare(executor.environment, getLexeme(executor.interpreter, statement.name), value);
+            declare(executor.environment, statement.name.lexeme, value);
             break;
         }
 
         case "ConstantDeclaration": {
             const value = executeExpression(executor, statement.initialiser);
-            declare(executor.environment, getLexeme(executor.interpreter, statement.name), value, /* reassignable */ false);
+            declare(executor.environment, statement.name.lexeme, value, /* reassignable */ false);
             break;
         }
 
@@ -477,7 +532,7 @@ export function executeStatement(executor, statement) {
             const condition = executeExpression(executor, statement.condition);
 
             if (!is_Boolean(condition)) {
-                throw 0;
+                throw 21;
             }
 
             if (condition) {
@@ -511,8 +566,7 @@ export function executeStatement(executor, statement) {
         }
 
         default:
-            /** @type {never} */
-            throw 0;
+            throw new ImplementationError(`Unhandled statement:\n${JSON.stringify(statement, null, 4)}`);
     }
 }
 

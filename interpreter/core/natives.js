@@ -36,7 +36,7 @@ export const natives = {
         arity: 2,
         call(_, args) {
             if (!is_Number(args[0]) || !is_Number(args[1])) {
-                throw 0;
+                throw 101;
             }
 
             return args[0] % args[1];
@@ -46,7 +46,7 @@ export const natives = {
         arity: 2,
         call(_, args) {
             if (!is_Number(args[0]) || !is_Number(args[1])) {
-                throw 0;
+                throw 102;
             }
 
             return args[0] ** args[1];
@@ -56,7 +56,7 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Array(args[0]) && !is_String(args[0])) {
-                throw 0;
+                throw 103;
             }
 
             return args[0].length;
@@ -66,7 +66,7 @@ export const natives = {
         arity: 2,
         call(_, args) {
             if (!is_Array(args[0])) {
-                throw 0;
+                throw 104;
             }
 
             return args[0].includes(args[1]);
@@ -76,7 +76,7 @@ export const natives = {
         arity: 2,
         call(_, args) {
             if (!is_Object(args[0])) {
-                throw 0;
+                throw 105;
             }
 
             return args[0].has(args[1]);
@@ -86,7 +86,7 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Object(args[0])) {
-                throw 0;
+                throw 106;
             }
 
             return [...args[0].keys()];
@@ -96,7 +96,7 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Object(args[0])) {
-                throw 0;
+                throw 107;
             }
 
             return [...args[0].values()];
@@ -106,7 +106,7 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Object(args[0])) {
-                throw 0;
+                throw 108;
             }
 
             return args[0].size;
@@ -116,12 +116,12 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Array(args[0])) {
-                throw 0;
+                throw 109;
             }
 
             for (const item of args[0]) {
                 if (!is_Number(item)) {
-                    throw 0;
+                    throw 110;
                 }
             }
 
@@ -132,7 +132,7 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Array(args[0])) {
-                throw 0;
+                throw 111;
             }
 
             return [...args[0]].reverse();
@@ -148,7 +148,7 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Number(args[0])) {
-                throw 0;
+                throw 112;
             }
 
             return Math.floor(args[0]);
@@ -158,7 +158,7 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Number(args[0])) {
-                throw 0;
+                throw 113;
             }
 
             return Math.ceil(args[0]);
@@ -168,7 +168,7 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Number(args[0])) {
-                throw 0;
+                throw 114;
             }
 
             return Math.abs(args[0]);
@@ -178,7 +178,7 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Number(args[0])) {
-                throw 0;
+                throw 115;
             }
 
             return Math.round(args[0]);
@@ -188,12 +188,12 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Array(args[0])) {
-                throw 0;
+                throw 116;
             }
 
             for (const item of args[0]) {
                 if (!is_Number(item)) {
-                    throw 0;
+                    throw 117;
                 }
             }
 
@@ -204,16 +204,44 @@ export const natives = {
         arity: 1,
         call(_, args) {
             if (!is_Array(args[0])) {
-                throw 0;
+                throw 118;
             }
 
             for (const item of args[0]) {
                 if (!is_Number(item)) {
-                    throw 0;
+                    throw 119;
                 }
             }
 
             return Math.max(.../** @type {_Number[]} */(args[0]))
         }
     },
+    "slice": {
+        arity: 3,
+        call(_, args) {
+            if (!is_Array(args[0])) {
+                throw 1;
+            }
+
+            if (is_Null(args[2])) {
+                args[2] = args[0].length;
+            }
+
+            if (!is_Number(args[1]) || !is_Number(args[2])) {
+                throw 120;
+            }
+
+            return args[0].slice(args[1] - 1, args[2]);
+        }
+    },
+    "put": {
+        arity: 2,
+        call(_, args) {
+            if (!is_Array(args[0])) {
+                throw 121;
+            }
+
+            return args[0].push(args[1]);
+        }
+    }
 }

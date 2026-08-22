@@ -26,14 +26,19 @@ export function create_Function(declaration, closure) {
                 declare(environment, declaration.parameters[i].lexeme, args[i]);
             }
 
+            const previous = evaluator.environment;
+            evaluator.environment = environment;
+
             try {
                 executeStatement(evaluator, declaration.body);
             } catch (thrown) {
                 if (thrown instanceof ReturnSignal) {
                     return thrown.value;
-                } else {
-                    throw thrown;
                 }
+                    
+                throw thrown;
+            } finally {
+                evaluator.environment = previous;
             }
 
             // A function that does not return anything, returns null.

@@ -67,9 +67,9 @@ export function interpret(interpreter) {
     resolve(resolver);
     if (failed(interpreter)) return;
 
-    // /* Executing */
-    // const executor = createExecutor(interpreter);
-    // execute(executor);
-    // if (failed(interpreter)) return;
+    /* Executing */
+    const executor = createExecutor(interpreter);
+    execute(executor);
+    if (failed(interpreter)) return;
 }
 

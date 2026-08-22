@@ -276,6 +276,12 @@ function lexToken(lexer) {
         case "*":
             addToken(lexer, "Asterisk");
             break;
+        case "&":
+            addToken(lexer, "And");
+            break;
+        case "|":
+            addToken(lexer, "Bar");
+            break;
         case ":":
             addToken(lexer, "Colon");
             break;
