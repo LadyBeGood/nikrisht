@@ -166,8 +166,8 @@ function error(lexer, message) {
  * @param {Lexer} lexer Lexer state 
  */
 function lexString(lexer) {
-    while (!check(lexer, '"')) {
-        consume(lexer)
+    while (!isAtEnd(lexer) && !check(lexer, '"')) {
+        consume(lexer);
     }
 
     if (isAtEnd(lexer)) {
@@ -307,7 +307,7 @@ function lexToken(lexer) {
             }
             break;
         case ">":
-            if (match(lexer, ">")) {
+            if (match(lexer, "=")) {
                 addToken(lexer, "MoreThanEqual")
             } else {
                 addToken(lexer, "MoreThan")
@@ -355,7 +355,6 @@ export function lex(lexer) {
             lexToken(lexer);
         } catch (error) {
             if (error instanceof LexingError) {
-                lexer.current++;
                 continue;
             }
 

@@ -36,6 +36,7 @@ function hasErrors(interpreter) {
 
 /**
  * Checks for errors and marks the interpreter as failed if present.
+ * 
  * @param {Interpreter} interpreter
  * @returns {boolean}
  */
