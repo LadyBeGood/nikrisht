@@ -3,15 +3,15 @@ import { test, expect, describe } from "bun:test";
 
 // Local imports
 import { createInterpreter } from "../interpreter/interpreter.js";
-import { createLexer, lex } from "../interpreter/phases/lexer.js";
+import { createLexer, lex as lexSource } from "../interpreter/phases/lexer.js";
 import { getLexeme, getLiteral } from "../interpreter/core/token.js";
 import { keywords } from "../interpreter/core/keywords.js";
 
 
-function tokenise(source) {
+function lex(source) {
     const interpreter = createInterpreter(source, "node");
     const lexer = createLexer(interpreter);
-    lex(lexer);
+    lexSource(lexer);
 
     return {
         tokens: interpreter.tokens,
@@ -33,7 +33,7 @@ describe("Whitespace and Comments", () => {
         ["Regular comment terminated by CRLF newline", "# Hello, World!\r\n"],
         ["Mixed whitespace and comments", "   \n \n \t \r\n   # Hello, World!      \n\t # Bye, World!"],
     ])("%s produces just EndOfFile", (_name, source) => {
-        const { tokens, diagnostics } = tokenise(source);
+        const { tokens, diagnostics } = lex(source);
 
         expect(diagnostics.length).toBe(0);
         expect(tokens.length).toBe(1); // EndOfFile
@@ -65,7 +65,7 @@ describe("Single-character punctuations", () => {
         ["<", "LessThan"],
         [">", "MoreThan"],
     ])("%p lexes to %s", (source, expectedType) => {
-        const { tokens, diagnostics, lexeme } = tokenise(source);
+        const { tokens, diagnostics, lexeme } = lex(source);
 
         expect(diagnostics.length).toBe(0);
         expect(tokens.length).toBe(2);
@@ -84,7 +84,7 @@ describe("Multi-character operators", () => {
         ["..<", "DotDotLessThan"],
         ["..>", "DotDotMoreThan"],
     ])("%p lexes to %s", (source, expectedType) => {
-        const { tokens, diagnostics, lexeme } = tokenise(source);
+        const { tokens, diagnostics, lexeme } = lex(source);
 
         expect(diagnostics.length).toBe(0);
         expect(tokens.length).toBe(2);
@@ -95,7 +95,7 @@ describe("Multi-character operators", () => {
 
 describe("Numbers", () => {
     test("Integer number", () => {
-        const { tokens, lexeme, literal } = tokenise("123");
+        const { tokens, lexeme, literal } = lex("123");
 
         expect(tokens.length).toBe(2);
         expect(tokens[0].type).toBe("NumericLiteral");
@@ -104,7 +104,7 @@ describe("Numbers", () => {
     });
 
     test("Rational number", () => {
-        const { tokens, lexeme, literal } = tokenise("123.45");
+        const { tokens, lexeme, literal } = lex("123.45");
 
         expect(tokens.length).toBe(2);
         expect(tokens[0].type).toBe("NumericLiteral");
@@ -113,7 +113,7 @@ describe("Numbers", () => {
     });
 
     test("Negative number", () => {
-        const { tokens, lexeme, literal } = tokenise("-123.45");
+        const { tokens, lexeme, literal } = lex("-123.45");
 
         expect(tokens.length).toBe(3);
         expect(tokens[0].type).toBe("Minus");
@@ -123,7 +123,7 @@ describe("Numbers", () => {
     });
 
     test("Number with trailing dot", () => {
-        const { tokens, lexeme, literal } = tokenise("123.");
+        const { tokens, lexeme, literal } = lex("123.");
 
         expect(tokens.length).toBe(3); 
         expect(tokens[0].type).toBe("NumericLiteral");
@@ -133,7 +133,7 @@ describe("Numbers", () => {
     });
 
     test("Number with trailing letters", () => {
-        const { tokens, lexeme, literal } = tokenise("123abc");
+        const { tokens, lexeme, literal } = lex("123abc");
 
         expect(tokens.length).toBe(3);
         expect(tokens[0].type).toBe("NumericLiteral");
@@ -146,7 +146,7 @@ describe("Numbers", () => {
 
 describe("Strings", () => {
     test("Empty string", () => {
-        const { tokens, diagnostics, lexeme, literal } = tokenise('""');
+        const { tokens, diagnostics, lexeme, literal } = lex('""');
 
         expect(diagnostics.length).toBe(0);
         expect(tokens.length).toBe(2);
@@ -156,7 +156,7 @@ describe("Strings", () => {
     });
 
     test("Simple string", () => {
-        const { tokens, diagnostics, lexeme, literal } = tokenise('"hello"');
+        const { tokens, diagnostics, lexeme, literal } = lex('"hello"');
 
         expect(diagnostics.length).toBe(0);
         expect(tokens.length).toBe(2);
@@ -166,7 +166,7 @@ describe("Strings", () => {
     });
 
     test("Unterminated empty string", () => {
-        const { tokens, diagnostics } = tokenise('"');
+        const { tokens, diagnostics } = lex('"');
 
         expect(diagnostics.length).toBe(1);
         expect(tokens.length).toBe(1);
@@ -174,7 +174,7 @@ describe("Strings", () => {
     });
 
     test("Unterminated simple string", () => {
-        const { tokens, diagnostics } = tokenise('"Hello, World!');
+        const { tokens, diagnostics } = lex('"Hello, World!');
 
         expect(diagnostics.length).toBe(1);
         expect(tokens.length).toBe(1);
@@ -184,13 +184,13 @@ describe("Strings", () => {
 
 describe("Identifiers", () => {
     test.each([
-        ["Identifier with only letters", "name"],
-        ["Identifier starting with letters and ending with digits", "name123"],
-        ["Identifier starting with underscore", "_name"],
-        ["Identifier ending with underscore", "name_"],
-        ["Identifier with digits and underscore mixed", "name123_name_456"],
+        ["Identifier with only letters", "abc"],
+        ["Identifier starting with letters and ending with digits", "abc123"],
+        ["Identifier starting with underscore", "_abc"],
+        ["Identifier ending with underscore", "abc_"],
+        ["Identifier with digits and underscore mixed", "abc123_def_456"],
     ])("%s", (_name, source) => {
-        const { tokens, diagnostics, lexeme } = tokenise(source);
+        const { tokens, diagnostics, lexeme } = lex(source);
 
         expect(diagnostics.length).toBe(0);
         expect(tokens.length).toBe(2);
@@ -203,7 +203,7 @@ describe("Keywords", () => {
     test.each(
         [...keywords].map(keyword => [keyword, keyword[0].toUpperCase() + keyword.slice(1)])
     )("Keyword %p lexes to its token type %s", (keyword, expectedType) => {
-        const { tokens, diagnostics, lexeme } = tokenise(keyword);
+        const { tokens, diagnostics, lexeme } = lex(keyword);
 
         expect(diagnostics.length).toBe(0);
         expect(tokens.length).toBe(2);
@@ -213,7 +213,7 @@ describe("Keywords", () => {
 
     test("An identifier that merely contains a keyword is not treated as one", () => {
         const randomKeyword = () => [...keywords][Math.floor(Math.random() * keywords.size)];
-        const { tokens, lexeme } = tokenise(`${randomKeyword()}abcd ab${randomKeyword()}cd abcd${randomKeyword()}`);
+        const { tokens, lexeme } = lex(`${randomKeyword()}abcd ab${randomKeyword()}cd abcd${randomKeyword()}`);
 
         expect(tokens[0].type).toBe("Identifier");
         expect(tokens[1].type).toBe("Identifier");
@@ -233,7 +233,7 @@ describe("Invalid characters", () => {
         "'",
         "?",
     ])("%s", (character) => {
-        const { tokens, diagnostics } = tokenise(character);
+        const { tokens, diagnostics } = lex(character);
 
         expect(diagnostics.length).toBe(1);
         expect(tokens.length).toBe(1);
@@ -241,7 +241,7 @@ describe("Invalid characters", () => {
     });
 
     test("Recovery after lexing an invalid character", () => {
-        const { tokens, diagnostics, lexeme } = tokenise("abc@def");
+        const { tokens, diagnostics, lexeme } = lex("abc@def");
 
         expect(diagnostics.length).toBe(1);
         expect(tokens.length).toBe(3);
@@ -252,7 +252,7 @@ describe("Invalid characters", () => {
     });
 
     test("Multiple invalid characters each report their own diagnostic", () => {
-        const { tokens, diagnostics } = tokenise("@$%");
+        const { tokens, diagnostics } = lex("@$%");
 
         expect(diagnostics.length).toBe(3);
         expect(tokens.length).toBe(1);

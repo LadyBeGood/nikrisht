@@ -184,8 +184,9 @@ function resolveExpression(resolver, expression) {
             }
             break;
         case "RangeExpression":
-            resolveExpression(resolver, expression.left)
-            resolveExpression(resolver, expression.right)
+            resolveExpression(resolver, expression.starting);
+            resolveExpression(resolver, expression.ending);
+            if (expression.gap !== undefined) resolveExpression(resolver, expression.gap);
             break;
         case "LiteralExpression":
             // Eat five star, do nothing :)

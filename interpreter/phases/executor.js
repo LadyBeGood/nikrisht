@@ -7,7 +7,6 @@ import { natives } from "../core/natives.js";
 import { assign, assignAt, createEnvironment, declare, lookup, lookupAt } from "../core/environment.js";
 import { create_Function } from "../core/function.js";
 import { ExitSignal, ReturnSignal, SkipSignal } from "../core/signals.js";
-import { getLexeme } from "../core/token.js";
 import { ExecutionError, ImplementationError } from "../diagnostics/classes.js";
 import { error } from "../diagnostics/report.js";
 
@@ -352,8 +351,15 @@ function executeExpression(executor, expression) {
             if (args.length != callee.arity) {
                 throw 13;
             }
+            try {
+                return callee.call(executor, args);
+            } catch (thrown) {
+                if (thrown instanceof RangeError && thrown.message.includes("Maximum call stack size exceeded")) {
+                    error(executor.interpreter, expression, "Stack overflow: Maximum call stack size exceeded", "executor");
+                }
 
-            return callee.call(executor, args);
+                throw thrown;
+            }
         }
 
         case "FunctionExpression":
@@ -419,58 +425,73 @@ function executeExpression(executor, expression) {
         }
 
         case "RangeExpression": {
-            const start = executeExpression(executor, expression.left);
-            const end = executeExpression(executor, expression.right);
+            const startVal = executeExpression(executor, expression.starting);
+            const endVal = executeExpression(executor, expression.ending);
+            const gapVal = expression.gap !== undefined
+                ? executeExpression(executor, expression.gap)
+                : undefined;
 
-            if (!is_Number(start) || !is_Number(end)) {
-                error(executor.interpreter, expression, "Both operands of the range operator should be numbers", "executor");
+            if (!is_Number(startVal) || !is_Number(endVal) || (gapVal !== undefined && !is_Number(gapVal))) {
+                throw new Error("Range bounds and gap must be numeric values");
             }
 
-            /** @type {_Type[]} */
-            const array = [];
-            for (let i = start; i < end; i++) {
-                array.push(i);
+            const operatorType = expression.operator.type; // "DotDot", "DotDotLessThan", "DotDotMoreThan"
+
+            // Infer step size if missing
+            let step = gapVal;
+            if (step === undefined) {
+                step = startVal <= endVal ? 1 : -1;
             }
-            return array;
-            // const ascending = start <= end;
-            // const step = ascending ? 1 : -1;
-            // const operatorType = expression.operator.type;
 
-            // let current = start;
-            // let done = false;
+            // Zero step would cause infinite loop
+            if (step === 0) {
+                error(executor.interpreter, /** @type {Expression} */ (expression.gap), "Range step size cannot be zero, it will cause an infinite loop", "executor");
+            }
 
-            // return {
-            //     arity: 0,
-            //     call() {
-            //         const environment = createEnvironment(executor.environment);
-            //         const previous = executor.environment;
-            //         executor.environment = environment;
+            // Mismatched direction check (e.g. 1..5 with step -1 or 5..1 with step 1)
+            const isAscending = startVal <= endVal;
+            if ((isAscending && step < 0) || (!isAscending && step > 0)) {
+                // Invalid direction creates an immediately exhausted range
+                return {
+                    arity: 0,
+                    call: () => null
+                };
+            }
 
-            //         try {
-            //             if (done) return null;
+            // Pick exact comparison predicate once at initialization
+            let isWithinBounds;
 
-            //             if (operatorType === "DotDotLessThan") {
-            //                 // exclusive of the end when counting up: 0..<3 -> 0, 1, 2, null
-            //                 if (current >= end) { done = true; return null; }
-            //             } else if (operatorType === "DotDotMoreThan") {
-            //                 // exclusive of the end when counting down: 3..>1 -> 3, 2, null
-            //                 if (current <= end) { done = true; return null; }
-            //             } else {
-            //                 // ".." is inclusive of both ends, direction inferred from start/end
-            //                 if (ascending ? current > end : current < end) { done = true; return null; }
-            //             }
+            switch (expression.operator.type) {
+                case "DotDotLessThan":
+                    isWithinBounds = (/** @type {number} */ val) => val < endVal;
+                    break;
+                case "DotDotMoreThan":
+                    isWithinBounds = (/** @type {number} */ val) => val > endVal;
+                    break;
+                case "DotDot":
+                    isWithinBounds = step > 0
+                        ? (/** @type {number} */ val) => val <= endVal
+                        : (/** @type {number} */ val) => val >= endVal;
+                    break;
+                default:
+                    throw new ImplementationError(`Unsupported range operator: ${expression.operator.type}`);
+            }
 
-            //             const value = current;
-            //             current += step;
-            //             return value;
-            //         } finally {
-            //             executor.environment = previous;
-            //         }
-                    
-            //     }
-            // };
+            let index = 0;
 
+            return {
+                arity: 0,
+                call: () => {
+                    const current = startVal + index * step;
 
+                    if (!isWithinBounds(current)) {
+                        return null;
+                    }
+
+                    index++;
+                    return current;
+                }
+            };
         }
 
         default:

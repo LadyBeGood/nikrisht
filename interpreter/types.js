@@ -183,11 +183,12 @@
 /**
  * @typedef {Object} RangeExpression
  * @property {"RangeExpression"} type
- * @property {Expression} left
- * @property {Token} operator
- * @property {Expression} right
- * @property {number} start
- * @property {number} end
+ * @property {Token} operator .. or ..< or ..>
+ * @property {Expression} starting
+ * @property {Expression} ending
+ * @property {Expression | undefined} gap
+ * @property {number} start Source range start
+ * @property {number} end Source range end
  */
 
 /**

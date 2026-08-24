@@ -24,7 +24,7 @@ async function interpretFile(path) {
     // const lexer = createLexer(interpreter);
     interpret(interpreter);
     // lex(lexer);
-    // console.log(JSON.stringify(interpreter, null, 4));
+    console.log(JSON.stringify(interpreter.diagnostics, null, 4));
 
 }
 

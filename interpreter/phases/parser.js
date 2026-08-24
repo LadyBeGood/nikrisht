@@ -349,7 +349,7 @@ function parsePostfixExpression(parser) {
  * @returns {Expression}
  */
 function parseUnaryExpression(parser) {
-    if (check(parser, "ExclamationMark", "Minus")) {
+    if (check(parser, "Plus", "Minus", "ExclamationMark")) {
         const operator = consume(parser);
         const argument = parseUnaryExpression(parser);
         return { type: "UnaryExpression", argument, operator, start: operator.start, end: argument.end };
@@ -369,9 +369,21 @@ function parseRangeExpression(parser) {
 
     if (check(parser, "DotDot", "DotDotLessThan", "DotDotMoreThan")) {
         const operator = consume(parser);
-        const right = parseUnaryExpression(parser);
+        const ending = parseUnaryExpression(parser);
 
-        return { type: "RangeExpression", left: expression, operator, right, start: expression.start, end: right.end };
+        let gap;
+        let end = ending.end;
+
+        if (match(parser, "DotDot")) {
+            gap = parseUnaryExpression(parser);
+            end = gap.end;
+        }
+
+        if (check(parser, "DotDot", "DotDotLessThan", "DotDotMoreThan")) {
+            error(parser.interpreter, peek(parser), "Unexpected additional range operator in range expression", "parser");
+        }
+
+        return { type: "RangeExpression", starting: expression, operator, ending, gap, start: expression.start, end };
     }
 
     return expression;
