@@ -19,18 +19,18 @@ export function create_Function(declaration, closure) {
         declaration,
         closure,
 
-        call(evaluator, args) {
+        call(args, expression, executor) {
             const environment = createEnvironment(closure);
 
             for (let i = 0; i < declaration.parameters.length; i++) {
                 declare(environment, declaration.parameters[i].lexeme, args[i]);
             }
 
-            const previous = evaluator.environment;
-            evaluator.environment = environment;
+            const previous = executor.environment;
+            executor.environment = environment;
 
             try {
-                executeStatement(evaluator, declaration.body);
+                executeStatement(executor, declaration.body);
             } catch (thrown) {
                 if (thrown instanceof ReturnSignal) {
                     return thrown.value;
@@ -38,7 +38,7 @@ export function create_Function(declaration, closure) {
                     
                 throw thrown;
             } finally {
-                evaluator.environment = previous;
+                executor.environment = previous;
             }
 
             // A function that does not return anything, returns null.

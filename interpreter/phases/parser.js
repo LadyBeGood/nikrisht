@@ -290,8 +290,8 @@ function parseMemberExpression(parser, object) {
         property = parseExpression(parser);
         end = consume(parser, "RightSquareBracket", "Expected ']' after index.").end;
     } else {
-        consume(parser, "Dot");
-        const identifier = consume(parser, "Identifier");
+        consume(parser);
+        const identifier = consume(parser, "Identifier", "Expected identifier after dot");
         end = identifier.end;
         /** @type {LiteralExpression} */
         property = ({ type: "LiteralExpression", value: getLexeme(parser.interpreter, identifier), start: identifier.start, end: identifier.end });

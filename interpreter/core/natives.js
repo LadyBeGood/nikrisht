@@ -1,5 +1,6 @@
 // @ts-check
 
+import { error } from "../diagnostics/report.js";
 import "../types.js";
 import { is_Array, is_Boolean, is_Function, is_Null, is_Number, is_Object, is_String, type } from "./guards.js";
 
@@ -7,14 +8,14 @@ import { is_Array, is_Boolean, is_Function, is_Null, is_Number, is_Object, is_St
 export const natives = {
     "write": {
         arity: 1,
-        call(_, args) {
+        call(args) {
             console.log(args[0]);
             return null;
         }
     },
     "type": {
         arity: 1,
-        call(_, args) {
+        call(args) {
             const value = args[0];
 
             if (value === null) { // null
@@ -32,11 +33,31 @@ export const natives = {
             }
         }
     },
+    // Unless this key is written in this computed style, typescript checker confuses this with the
+    // Object.toString() method and gives stupid errors.
+    ["" + "toString"]: {
+        arity: 1,
+        call(args) {
+            return String(args[0]);
+        }
+    },
+    "toNumber": {
+        arity: 1,
+        call(args) {
+            return Number(args[0]);
+        }
+    },
+    "toBoolean": {
+        arity: 1,
+        call(args) {
+            return Boolean(args[0]);
+        }
+    },
     "remainder": {
         arity: 2,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Number(args[0]) || !is_Number(args[1])) {
-                throw 101;
+                error(executor.interpreter, expression.arguments[0], `Function 'remainder' requires numeric arguments, but got '${type(args[0])}' and '${type(args[1])}'`, "executor");
             }
 
             return args[0] % args[1];
@@ -44,9 +65,12 @@ export const natives = {
     },
     "power": {
         arity: 2,
-        call(_, args) {
-            if (!is_Number(args[0]) || !is_Number(args[1])) {
-                throw 102;
+        call(args, expression, executor) {
+            if (!is_Number(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `First argument of "power" must be a number, but got "${type(args[0])}"`, "executor");
+            }
+            if (!is_Number(args[1])) {
+                error(executor.interpreter, expression.arguments[1], `Second argument of "power" must be a number, but got "${type(args[1])}"`, "executor");
             }
 
             return args[0] ** args[1];
@@ -54,9 +78,9 @@ export const natives = {
     },
     "count": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Array(args[0]) && !is_String(args[0])) {
-                throw 103;
+                error(executor.interpreter, expression.arguments[0], `Function "count" expects an array or string, but got "${type(args[0])}"`, "executor");
             }
 
             return args[0].length;
@@ -64,9 +88,9 @@ export const natives = {
     },
     "includes": {
         arity: 2,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Array(args[0])) {
-                throw 104;
+                error(executor.interpreter, expression.arguments[0], `Function "includes" expects an array as its first argument, but got "${type(args[0])}"`, "executor");
             }
 
             return args[0].includes(args[1]);
@@ -74,9 +98,9 @@ export const natives = {
     },
     "has": {
         arity: 2,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Object(args[0])) {
-                throw 105;
+                error(executor.interpreter, expression.arguments[0], `Function "has" expects an object as its first argument, but got "${type(args[0])}"`, "executor");
             }
 
             return args[0].has(args[1]);
@@ -84,9 +108,9 @@ export const natives = {
     },
     "keys": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Object(args[0])) {
-                throw 106;
+                error(executor.interpreter, expression.arguments[0], `Function "keys" expects an object, but got "${type(args[0])}"`, "executor");
             }
 
             return [...args[0].keys()];
@@ -94,9 +118,9 @@ export const natives = {
     },
     "values": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Object(args[0])) {
-                throw 107;
+                error(executor.interpreter, expression.arguments[0], `Function "values" expects an object, but got "${type(args[0])}"`, "executor");
             }
 
             return [...args[0].values()];
@@ -104,9 +128,9 @@ export const natives = {
     },
     "size": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Object(args[0])) {
-                throw 108;
+                error(executor.interpreter, expression.arguments[0], `Function "size" expects an object, but got "${type(args[0])}"`, "executor");
             }
 
             return args[0].size;
@@ -114,14 +138,14 @@ export const natives = {
     },
     "sorted": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Array(args[0])) {
-                throw 109;
+                error(executor.interpreter, expression.arguments[0], `Function "sorted" expects an array, but got "${type(args[0])}"`, "executor");
             }
 
-            for (const item of args[0]) {
-                if (!is_Number(item)) {
-                    throw 110;
+            for (let i = 0; i < args[0].length; i++) {
+                if (!is_Number(args[0][i])) {
+                    error(executor.interpreter, /** @type {ArrayExpression} */ (expression.arguments[0]).elements[i], `Function "sorted" requires all array items to be numbers, but found "${type(item)}"`, "executor");
                 }
             }
 
@@ -130,9 +154,9 @@ export const natives = {
     },
     "reverse": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Array(args[0])) {
-                throw 111;
+                error(executor.interpreter, expression.arguments[0], `Function "reverse" expects an array, but got "${type(args[0])}"`, "executor");
             }
 
             return [...args[0]].reverse();
@@ -140,15 +164,15 @@ export const natives = {
     },
     "random": {
         arity: 0,
-        call(_, __) {
+        call(__) {
             return Math.random();
         }
     },
     "floor": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Number(args[0])) {
-                throw 112;
+                error(executor.interpreter, expression.arguments[0], `Function "floor" expects a number, but got "${type(args[0])}"`, "executor");
             }
 
             return Math.floor(args[0]);
@@ -156,9 +180,9 @@ export const natives = {
     },
     "ceil": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Number(args[0])) {
-                throw 113;
+                error(executor.interpreter, expression.arguments[0], `Function "ceil" expects a number, but got "${type(args[0])}"`, "executor");
             }
 
             return Math.ceil(args[0]);
@@ -166,9 +190,9 @@ export const natives = {
     },
     "absolute": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Number(args[0])) {
-                throw 114;
+                error(executor.interpreter, expression.arguments[0], `Function "absolute" expects a number, but got "${type(args[0])}"`, "executor");
             }
 
             return Math.abs(args[0]);
@@ -176,9 +200,9 @@ export const natives = {
     },
     "round": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Number(args[0])) {
-                throw 115;
+                error(executor.interpreter, expression.arguments[0], `Function "round" expects a number, but got "${type(args[0])}"`, "executor");
             }
 
             return Math.round(args[0]);
@@ -186,30 +210,30 @@ export const natives = {
     },
     "min": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Array(args[0])) {
-                throw 116;
+                error(executor.interpreter, expression.arguments[0], `Function "min" expects an array, but got "${type(args[0])}"`, "executor");
             }
 
-            for (const item of args[0]) {
-                if (!is_Number(item)) {
-                    throw 117;
+            for (let i = 0; i < args[0].length; i++) {
+                if (!is_Number(args[0][i])) {
+                    error(executor.interpreter, /** @type {ArrayExpression} */ (expression.arguments[0]).elements[i], `Function "min" requires all array items to be numbers, but found "${type(args[0][i])}"`, "executor");
                 }
             }
 
-            return Math.min(.../** @type {_Number[]} */(args[0]))
+            return Math.min(.../** @type {_Number[]} */(args[0]));
         }
     },
     "max": {
         arity: 1,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Array(args[0])) {
-                throw 118;
+                error(executor.interpreter, expression.arguments[0], `Function "max" expects an array, but got "${type(args[0])}"`, "executor");
             }
 
-            for (const item of args[0]) {
-                if (!is_Number(item)) {
-                    throw 119;
+            for (let i = 0; i < args[0].length; i++) {
+                if (!is_Number(args[0][i])) {
+                    error(executor.interpreter, /** @type {ArrayExpression} */(expression.arguments[0]).elements[i], `Function "max" requires all array items to be numbers, but found "${type(args[0][i])}"`, "executor");
                 }
             }
 
@@ -218,17 +242,20 @@ export const natives = {
     },
     "slice": {
         arity: 3,
-        call(_, args) {
-            if (!is_Array(args[0])) {
-                throw 1;
+        call(args, expression, executor) {
+            if (!is_Array(args[0]) && !is_String(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "slice" expects an array or string as its first argument, but got "${type(args[0])}"`, "executor");
             }
 
             if (is_Null(args[2])) {
                 args[2] = args[0].length;
             }
 
-            if (!is_Number(args[1]) || !is_Number(args[2])) {
-                throw 120;
+            if (!is_Number(args[1])) {
+                error(executor.interpreter, expression.arguments[1], `Slice start index must be a number, but got "${type(args[1])}"`, "executor");
+            }
+            if (!is_Number(args[2])) {
+                error(executor.interpreter, expression.arguments[2], `Slice end index must be a number, but got "${type(args[2])}"`, "executor");
             }
 
             return args[0].slice(args[1] - 1, args[2]);
@@ -236,12 +263,22 @@ export const natives = {
     },
     "put": {
         arity: 2,
-        call(_, args) {
+        call(args, expression, executor) {
             if (!is_Array(args[0])) {
-                throw 121;
+                error(executor.interpreter, expression.arguments[0], `Function "put" expects an array as its first argument, but got "${type(args[0])}"`, "executor");
             }
 
             return args[0].push(args[1]);
         }
-    }
+    },
+    "pop": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_Array(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "pop" expects an array as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+
+            return args[0].pop() ?? null;
+        }
+    },
 }

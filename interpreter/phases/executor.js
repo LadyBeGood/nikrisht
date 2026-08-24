@@ -9,6 +9,7 @@ import { create_Function } from "../core/function.js";
 import { ExitSignal, ReturnSignal, SkipSignal } from "../core/signals.js";
 import { ExecutionError, ImplementationError } from "../diagnostics/classes.js";
 import { error } from "../diagnostics/report.js";
+import { getLexeme } from "../core/token.js";
 
 
 
@@ -84,7 +85,7 @@ function executeLoopStatement(executor, statement) {
     // loop number with value
     if (is_Number(iterable)) {
         if (statement.binding?.index !== undefined) {
-            throw new Error("Numeric loops do not support index bindings");
+            error(executor.interpreter, statement.binding.index, "Numeric loops do not support index bindings", "executor");
         }
 
         // 1-based counting, end inclusive
@@ -102,7 +103,7 @@ function executeLoopStatement(executor, statement) {
     // loop condition
     else if (is_Boolean(iterable)) {
         if (statement.binding !== undefined) {
-            throw new Error("Boolean loops do not support bindings");
+            error(executor.interpreter, statement.iterable, "Boolean loops do not support bindings", "executor");
         }
 
         while (executeExpression(executor, statement.iterable) === true) {
@@ -114,7 +115,7 @@ function executeLoopStatement(executor, statement) {
     // loop null
     else if (is_Null(iterable)) {
         if (statement.binding !== undefined) {
-            throw new Error("Null loops do not support bindings");
+            error(executor.interpreter, statement.iterable, "Null loops do not support bindings", "executor");
         }
     }
 
@@ -158,11 +159,11 @@ function executeLoopStatement(executor, statement) {
     // loop function with value
     else if (is_Function(iterable)) {
         if (statement.binding?.index !== undefined) {
-            throw new Error("Function loops do not support index bindings");
+            error(executor.interpreter, statement.binding.index, "Function loops do not support index bindings", "executor");
         }
 
         while (true) {
-            const value = iterable.call(executor, []);
+            const value = iterable.call([], /** @type {CallExpression} */ (statement.iterable), executor);
 
             // returning null ends the iteration
             if (value === null) {
@@ -180,15 +181,15 @@ function executeLoopStatement(executor, statement) {
     }
 
     else {
-        throw new Error(`Value of type '${type(iterable)}' is not iterable`);
+        error(executor.interpreter, statement.iterable, `Value of type '${type(iterable)}' is not iterable`, "executor");
     }
 }
 
 
 /**
- * 
- * @param {Executor} executor 
- * @param {Expression} expression 
+ *
+ * @param {Executor} executor
+ * @param {Expression} expression
  * @returns {_Type}
  */
 function executeExpression(executor, expression) {
@@ -227,11 +228,11 @@ function executeExpression(executor, expression) {
 
                 if (is_Array(subject)) {
                     if (!is_Number(index)) {
-                        throw 1;
+                        error(executor.interpreter, expression.left.property, `Array index must be a number, but got '${type(index)}'`, "executor");
                     }
 
                     if (index < 1 || index > subject.length) {
-                        throw 2;
+                        error(executor.interpreter, expression.left.property, `Array index out of bounds: index ${index} is outside range 1..${subject.length}]`, "executor");
                     }
 
                     const value = executeExpression(executor, expression.right);
@@ -243,10 +244,10 @@ function executeExpression(executor, expression) {
                     return value;
                 }
 
-                throw 3;
+                error(executor.interpreter, expression.left.object, `Cannot assign property on value of type '${type(subject)}'`, "executor");
             }
 
-            throw 4;
+            error(executor.interpreter, expression.left, "Invalid left-hand side in assignment expression", "executor");
         }
 
 
@@ -279,18 +280,18 @@ function executeExpression(executor, expression) {
             switch (expression.operator.type) {
                 case "Minus":
                     if (!is_Number(operand)) {
-                        throw 5;
+                        error(executor.interpreter, expression.argument, `Operand for unary minus (-) must be a number, but got "${type(operand)}".`, "executor");
                     } else {
                         return -operand;
                     }
                 case "ExclamationMark":
                     if (!is_Boolean(operand)) {
-                        throw 6;
+                        error(executor.interpreter, expression.argument, `Operand for logical NOT (!) must be a boolean, but got "${type(operand)}"`, "executor");
                     } else {
-                        throw !operand;
+                        return !operand;
                     }
                 default:
-                    throw 1;
+                    throw new ImplementationError(`Unsupported unary operator "${expression.operator.type}"`);
             }
         }
         case "BinaryExpression": {
@@ -308,20 +309,20 @@ function executeExpression(executor, expression) {
                             return left + right;
                         }
 
-                        throw 7;
+                        error(executor.interpreter, expression.right, `Cannot add value of type "${type(right)}" to a number`, "executor");
                     } else if (is_String(left)) {
                         if (is_String(right)) {
                             return left + right;
                         }
 
-                        throw 8;
+                        error(executor.interpreter, expression.right, `Cannot concatenate value of type "${type(right)}" to a string`, "executor");
                     }
 
-                    throw 9;
+                    error(executor.interpreter, expression.left, `Operator '+' cannot be applied to operands of type "${type(left)}" and "${type(right)}"`, "executor");
             }
 
             if (!is_Number(left) || !is_Number(right)) {
-                throw 10;
+                error(executor.interpreter, expression, `Binary operator "${getLexeme(executor.interpreter, expression.operator)}" requires numeric operands, but got "${type(left)}" and "${type(right)}"`, "executor");
             }
 
             switch (expression.operator.type) {
@@ -332,14 +333,14 @@ function executeExpression(executor, expression) {
                 case "LessThan": return left < right;
                 case "MoreThanEqual": return left >= right;
                 case "LessThanEqual": return left <= right;
-                default: throw new Error(JSON.stringify(expression, null, 4));
+                default: throw new ImplementationError(`Unimplemented Binary operation "${getLexeme(executor.interpreter, expression.operator)}"`);
             }
         }
 
         case "CallExpression": {
             const callee = executeExpression(executor, expression.callee);
             if (!is_Function(callee)) {
-                throw 12;
+                error(executor.interpreter, expression.callee, `Value of type "${type(callee)}" is not callable`, "executor");
             }
 
             const args = [];
@@ -349,17 +350,10 @@ function executeExpression(executor, expression) {
             }
 
             if (args.length != callee.arity) {
-                throw 13;
+                error(executor.interpreter, expression, `Function expects ${callee.arity} argument(s) but got ${args.length}`, "executor");
             }
-            try {
-                return callee.call(executor, args);
-            } catch (thrown) {
-                if (thrown instanceof RangeError && thrown.message.includes("Maximum call stack size exceeded")) {
-                    error(executor.interpreter, expression, "Stack overflow: Maximum call stack size exceeded", "executor");
-                }
-
-                throw thrown;
-            }
+                
+            return callee.call(args, expression, executor);
         }
 
         case "FunctionExpression":
@@ -371,11 +365,11 @@ function executeExpression(executor, expression) {
 
             if (is_Array(subject) || is_String(subject)) {
                 if (!is_Number(index)) {
-                    throw 14;
+                    error(executor.interpreter, expression.property, `Index must be a number, but got "${type(index)}"`, "executor");
                 }
 
                 if (index < 1 || index > subject.length) {
-                    throw 15;
+                    error(executor.interpreter, expression.property, `Index out of bounds: ${index} is outside range 1..${subject.length}`, "executor");
                 }
 
                 return subject[index - 1];
@@ -389,14 +383,14 @@ function executeExpression(executor, expression) {
                 return value;
             }
 
-            throw 17;
+            error(executor.interpreter, expression.object, `Cannot access property on value of type "${type(subject)}"`, "executor");
         }
 
         case "LogicalExpression": {
             const left = executeExpression(executor, expression.left);
 
             if (!is_Boolean(left)) {
-                throw 18;
+                error(executor.interpreter, expression.left, `Left operand of logical expression must be a boolean, but got "${type(left)}"`, "executor");
             }
 
             switch (expression.operator.type) {
@@ -411,14 +405,13 @@ function executeExpression(executor, expression) {
                     break;
 
                 default:
-                    /** @type {never} */
-                    throw 19;
+                    throw new ImplementationError(`Unimplemented logical operator "${getLexeme(executor.interpreter, expression.operator)}"`);
             }
 
             const right = executeExpression(executor, expression.right);
 
             if (!is_Boolean(right)) {
-                throw 20;
+                error(executor.interpreter, expression.right, `Right operand of logical expression must be a boolean, but got "${type(right)}"`, "executor");
             }
 
             return right;
@@ -431,8 +424,14 @@ function executeExpression(executor, expression) {
                 ? executeExpression(executor, expression.gap)
                 : undefined;
 
-            if (!is_Number(startVal) || !is_Number(endVal) || (gapVal !== undefined && !is_Number(gapVal))) {
-                throw new Error("Range bounds and gap must be numeric values");
+            if (!is_Number(startVal)) {
+                error(executor.interpreter, expression.starting, `Range start bound must be a number, but got "${type(startVal)}"`, "executor");
+            }
+            if (!is_Number(endVal)) {
+                error(executor.interpreter, expression.ending, `Range end bound must be a number, but got "${type(endVal)}"`, "executor");
+            }
+            if (gapVal !== undefined && !is_Number(gapVal)) {
+                error(executor.interpreter, /** @type {Expression} */ (expression.gap), `Range gap must be a number, but got "${type(gapVal)}"`, "executor");
             }
 
             const operatorType = expression.operator.type; // "DotDot", "DotDotLessThan", "DotDotMoreThan"
@@ -495,7 +494,7 @@ function executeExpression(executor, expression) {
         }
 
         default:
-            throw new ImplementationError(`Unhandled expression:\n${JSON.stringify(expression, null, 4)}`);
+            throw new ImplementationError(`Unimplemented expression:\n${JSON.stringify(expression, null, 4)}`);
     }
 }
 
@@ -553,7 +552,7 @@ export function executeStatement(executor, statement) {
             const condition = executeExpression(executor, statement.condition);
 
             if (!is_Boolean(condition)) {
-                throw 21;
+                error(executor.interpreter, statement.condition, `If condition must evaluate to a boolean, but got "${type(condition)}"`, "executor");
             }
 
             if (condition) {
@@ -587,7 +586,7 @@ export function executeStatement(executor, statement) {
         }
 
         default:
-            throw new ImplementationError(`Unhandled statement:\n${JSON.stringify(statement, null, 4)}`);
+            throw new ImplementationError(`Unimplemented statement:\n${JSON.stringify(statement, null, 4)}`);
     }
 }
 

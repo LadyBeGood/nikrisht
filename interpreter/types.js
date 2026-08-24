@@ -461,7 +461,7 @@
  * @property {number} arity
  * @property {Environment} [closure]
  * @property {FunctionDeclaration | FunctionExpression} [declaration]
- * @property {(interpreter: Executor, args: _Type[]) => _Type} call
+ * @property {(args: _Type[], expression: CallExpression, executor: Executor) => _Type} call
 */
 
 /**
