@@ -145,7 +145,7 @@ export const natives = {
 
             for (let i = 0; i < args[0].length; i++) {
                 if (!is_Number(args[0][i])) {
-                    error(executor.interpreter, /** @type {ArrayExpression} */ (expression.arguments[0]).elements[i], `Function "sorted" requires all array items to be numbers, but found "${type(item)}"`, "executor");
+                    error(executor.interpreter, /** @type {ArrayExpression} */ (expression.arguments[0]).elements[i], `Function "sorted" requires all array items to be numbers, but found "${type(args[0][i])}"`, "executor");
                 }
             }
 

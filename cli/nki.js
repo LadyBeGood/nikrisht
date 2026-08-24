@@ -3,8 +3,7 @@
 // @ts-check
 
 import { readFileSync } from "node:fs";
-import { interpret, createInterpreter } from "../interpreter.js"
-import { lex, createLexer } from "../phases/lexer.js"
+import { interpret, createInterpreter } from "../interpreter/interpreter.js"
 
 
 /**
@@ -21,11 +20,8 @@ async function interpretFile(path) {
     }
 
     const interpreter = createInterpreter(source, "node");
-    // const lexer = createLexer(interpreter);
     interpret(interpreter);
-    // lex(lexer);
-    console.log(JSON.stringify(interpreter.diagnostics, null, 4));
-
+    // console.log(JSON.stringify(interpreter.diagnostics, null, 4));
 }
 
 

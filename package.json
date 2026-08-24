@@ -12,10 +12,12 @@
         "javascript"
     ],
     "files": [
-        "interpreter"
+        "interpreter",
+        "cli"
     ],
+    "license": "MIT-0",
     "bin": {
-        "nki": "./interpreter/host/node.js"
+        "nki": "./cli/nki.js"
     },
     "bugs": {
         "url": "https://github.com/LadyBeGood/nikrisht/issues"
@@ -26,8 +28,7 @@
     },
     "author": "LadyBeGood",
     "type": "module",
-    "main": "./interpreter/utkrisht.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "bun test"
     }
 }

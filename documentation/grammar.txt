@@ -1,0 +1,85 @@
+
+program = declaration* EndOfFile
+
+declaration = 
+    | variable-declaration
+    | constant-declaration
+    | function-declaration
+    | statement
+
+variable-declaration = "var" Identifier ( "=" expression )? ";"
+constant-declaration = "const" Identifier "=" expression ";"
+function-declaration = "func" Identifier "(" parameters? ")" ( block-statement | expression-statement-short )
+parameters           = Identifier ( "," Identifier )* ","?
+
+
+statement = 
+    | if-statement
+    | loop-statement
+    | exit-statement
+    | skip-statement
+    | return-statement
+    | block-statement
+    | expression-statement
+
+if-statement = "if" "(" expression ")" statement ( "else" statement )?
+
+loop-statement = "loop" ( "(" expression ( "with" binding )? ")" )? statement
+binding = 
+    | Identifier
+    | "[" Identifier ( "," Identifier )? "]"
+
+exit-statement             = "exit" ";"
+skip-statement             = "skip" ";"
+return-statement           = "return" expression? ";"
+block-statement            = "{" declaration* "}"
+expression-statement       = expression ";"
+expression-statement-short = expression
+
+
+expression = assignment-expression
+
+assignment-expression = logical-or-expression ( "=" assignment-expression )?
+
+logical-or-expression = logical-and-expression ( "|" logical-and-expression )*
+
+logical-and-expression = equality-expression ( "&" equality-expression )*
+
+equality-expression = comparison-expression ( ( "!=" | "==" ) comparison-expression )*
+
+comparison-expression = term-expression ( ( ">" | ">=" | "<" | "<=" ) term-expression )*
+
+term-expression = factor-expression ( ( "-" | "+" ) factor-expression )*
+
+factor-expression = range-expression ( ( "/" | "*" ) range-expression )*
+
+range-expression = unary-expression ( ( ".." | "..<" | "..>" ) unary-expression ( ".." unary-expression )? )?
+
+unary-expression = 
+    | ( "+" | "-" | "!" ) unary-expression
+    | postfix-expression
+
+postfix-expression  = primary-expression ( call-suffix | member-suffix )*
+call-suffix = "(" arguments? ")"
+arguments = expression ( "," expression )* ","?
+member-suffix = 
+    | "[" expression "]" 
+    | "." Identifier
+
+primary-expression = 
+    | "true"
+    | "false"
+    | "null"
+    | NumericLiteral
+    | StringLiteral
+    | Identifier
+    | "(" expression ")"
+    | "[" array-elements? "]"
+    | "{" object-entries? "}"
+    | function-expression
+
+array-elements        = expression ( "," expression )* ","?
+object-entries        = object-entry ( "," object-entry )* ","?
+object-entry          = expression ":" expression
+
+function-expression   = "func" Identifier? "(" parameters? ")" ( block-statement | expression-statement-short )

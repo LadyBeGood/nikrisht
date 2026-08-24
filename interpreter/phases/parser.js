@@ -312,7 +312,7 @@ function parseCallExpression(parser, callee) {
     if (!check(parser, "RightRoundBracket")) {
         do {
             args.push(parseExpression(parser));
-        } while (match(parser, "Comma"));
+        } while (match(parser, "Comma") && !check(parser, "RightRoundBracket"));
     }
 
     const end = consume(parser, "RightRoundBracket", "Expected ')' after arguments").end;
@@ -841,7 +841,7 @@ function parseFunctionDeclaration(parser) {
     if (!check(parser, "RightRoundBracket")) {
         do {
             parameters.push(parseIdentifierExpression(parser, "Expected parameter name."));
-        } while (match(parser, "Comma"));
+        } while (match(parser, "Comma") && !check(parser, "RightRoundBracket"));
     }
 
     consume(parser, "RightRoundBracket", "Expected ')' after parameters");

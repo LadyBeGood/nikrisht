@@ -1,0 +1,18 @@
+
+const cache = {};
+
+func fibonacci(number) {
+    if (cache[number] != null) {
+        return cache[number];
+    }
+
+    if (number <= 1) {
+        return number;
+    }
+
+    cache[number] = fibonacci(number - 1) + fibonacci(number - 2);
+    return cache[number];
+}
+
+write(fibonacci(8));
+

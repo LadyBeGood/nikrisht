@@ -1,0 +1,47 @@
+
+# Sorts an array using Merge Sort algorithm
+func mergeSort(array) {
+    # Base case, an array of 0 or 1 elements is already sorted
+    if (count(array) <= 1) {
+        return array;
+    }
+
+    # Split the array into two halves
+    const middle = floor(count(array) / 2);
+
+    # Sort both halves, recursively
+    const left = mergeSort(slice(array, 1, middle));
+    const right = mergeSort(slice(array, middle + 1, count(array)));
+
+    # Merge the two sorted halves
+    const result = [];
+    var i = 1;
+    var j = 1;
+
+    loop (i <= count(left) & j <= count(right)) {
+        if (left[i] <= right[j]) {
+            put(result, left[i]);
+            i = i + 1;
+        } else {
+            put(result, right[j]);
+            j = j + 1;
+        }
+    }
+
+    # Add any remaining elements from the left half.
+    loop (i <= count(left)) {
+        put(result, left[i]);
+        i = i + 1;
+    }
+
+    # Add any remaining elements from the right half.
+    loop (j <= count(right)) {
+        put(result, right[j]);
+        j = j + 1;
+    }
+
+    return result;
+}
+
+write(mergeSort([10, -1, 2, 5, 0, 9]));
+
