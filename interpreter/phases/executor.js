@@ -606,7 +606,10 @@ function executeStatements(executor, statements) {
  * @param {Executor} executor 
  */
 export function execute(executor) {
+    const previous = executor.environment;
+    
     try {
+        executor.environment = createEnvironment(executor.environment);
         executeStatements(executor, executor.interpreter.statements);
     } catch (thrown) {
         if (thrown instanceof ExecutionError) {
@@ -614,5 +617,7 @@ export function execute(executor) {
         }
 
         throw thrown;
+    } finally {
+        executor.environment = previous;
     }
 }

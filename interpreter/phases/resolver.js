@@ -1,7 +1,7 @@
 // @ts-check
 
 import { ImplementationError, ResolvingError } from "../diagnostics/classes.js";
-import { error } from "../diagnostics/report.js";
+import { error, warn } from "../diagnostics/report.js";
 import "../types.js";
 
 /**
@@ -32,7 +32,15 @@ function beginScope(resolver) {
  * @param {Resolver} resolver 
  */
 function endScope(resolver) {
-    resolver.scopes.pop();
+    const scope = resolver.scopes.pop();
+
+    if (scope) {
+        for (const [name, metadata] of scope.entries()) {
+            if (!metadata.used) {
+                warn(resolver.interpreter, metadata.node, `${metadata.kind} "${name}" is declared but never used.`, "resolver");
+            }
+        }
+    }
 }
 
 /**
@@ -58,8 +66,9 @@ function peek(resolver) {
  * 
  * @param {Resolver} resolver 
  * @param {IdentifierExpression} name 
+ * @param {SymbolMetadata["kind"]} kind 
  */
-function declare(resolver, name) {
+function declare(resolver, name, kind) {
     if (resolver.scopes.length === 0) {
         return;
     }
@@ -67,10 +76,15 @@ function declare(resolver, name) {
     const scope = peek(resolver);
 
     if (scope.has(name.lexeme)) {
-        error(resolver.interpreter, name, `Variable "${name.lexeme}" is already declared in this scope.`, "resolver");
+        error(resolver.interpreter, name, `Symbol "${name.lexeme}" is already declared in this scope.`, "resolver");
     }
 
-    scope.set(name.lexeme, false);
+    scope.set(name.lexeme, {
+        defined: false,
+        used: false,
+        node: name,
+        kind 
+    });
 }
 
 /**
@@ -83,7 +97,13 @@ function define(resolver, name) {
         return;
     }
 
-    peek(resolver).set(name.lexeme, true);
+    const symbolMetadata = peek(resolver).get(name.lexeme);
+
+    if (symbolMetadata === undefined) {
+        throw new ImplementationError(`Trying to define an undeclared symbol "${name.lexeme}"`);
+    }
+
+    symbolMetadata.defined = true;
 }
 
 /**
@@ -94,10 +114,46 @@ function define(resolver, name) {
  */
 function resolveLocal(resolver, node, name) {
     for (let i = resolver.scopes.length - 1; i >= 0; i--) {
-        if (resolver.scopes[i].has(name)) {
+        const scope = resolver.scopes[i];
+
+        if (scope.has(name)) {
+            const metadata = scope.get(name);
+            if (metadata !== undefined) metadata.used = true;
+
             resolver.interpreter.locals.set(node, resolver.scopes.length - 1 - i);
             return;
         }
+    }
+}
+
+/**
+ * 
+ * @param {Expression} expression
+ * @returns {boolean}
+ */
+function isPureExpression(expression) {
+    switch (expression.type) {
+        case "LiteralExpression":
+        case "IdentifierExpression":
+        case "ArrayExpression":
+        case "ObjectExpression":
+        case "FunctionExpression":
+        case "RangeExpression":
+            return true;
+        case "BinaryExpression":
+        case "LogicalExpression":
+            return isPureExpression(expression.left) && isPureExpression(expression.right);
+        case "GroupingExpression":
+            return isPureExpression(expression.expression);
+        case "UnaryExpression":
+            return isPureExpression(expression.argument);
+        case "MemberExpression":
+            return isPureExpression(expression.object) && isPureExpression(expression.property);
+        case "AssignmentExpression":
+        case "CallExpression":
+            return false;
+        default:
+            throw new ImplementationError("Unknown expression type.");
     }
 }
 
@@ -108,7 +164,7 @@ function resolveLocal(resolver, node, name) {
  */
 function resolveFunction(resolver, fn) {
     if (fn.name !== undefined) {
-        declare(resolver, fn.name);
+        declare(resolver, fn.name, "Function");
         define(resolver, fn.name);
     }
 
@@ -116,7 +172,7 @@ function resolveFunction(resolver, fn) {
     beginScope(resolver);
 
     for (const parameter of fn.parameters) {
-        declare(resolver, parameter);
+        declare(resolver, parameter, "Parameter");
         define(resolver, parameter);
     }
 
@@ -138,7 +194,7 @@ function resolveExpression(resolver, expression) {
             if (resolver.scopes.length > 0) {
                 const scope = peek(resolver);
 
-                if (scope.has(expression.lexeme) && scope.get(expression.lexeme) === false) {
+                if (scope.has(expression.lexeme) && scope.get(expression.lexeme)?.defined === false) {
                     error(resolver.interpreter, expression, `Cannot read local variable "${expression.lexeme}" in its own initializer.`, "resolver")
                 }
             }
@@ -210,6 +266,11 @@ function resolveStatement(resolver, statement) {
             break;
         case "ExpressionStatement":
             resolveExpression(resolver, statement.expression);
+
+            // Check if expression is pure and its result is discarded
+            if (isPureExpression(statement.expression)) {
+                warn(resolver.interpreter, statement, `Expression result is never used.`, "resolver");
+            }
             break;
         case "IfStatement":
             resolveExpression(resolver, statement.condition);
@@ -225,9 +286,13 @@ function resolveStatement(resolver, statement) {
             if (resolver.loopDepth <= 0) error(resolver.interpreter, statement, `Cannot use "${statement.type === "ExitStatement" ? "exit" : "skip"}" outside of a loop.`, "resolver");
             break;
         case "VariableDeclaration":
-        case "ConstantDeclaration":
-            declare(resolver, statement.name);
+            declare(resolver, statement.name, "Variable");
             if (statement.initialiser !== undefined) resolveExpression(resolver, statement.initialiser);
+            define(resolver, statement.name);
+            break;
+        case "ConstantDeclaration":
+            declare(resolver, statement.name, "Constant");
+            resolveExpression(resolver, statement.initialiser);
             define(resolver, statement.name);
             break;
         case "FunctionDeclaration":
@@ -242,12 +307,12 @@ function resolveStatement(resolver, statement) {
             beginScope(resolver);
 
             if (statement.binding?.index) {
-                declare(resolver, statement.binding.index);
+                declare(resolver, statement.binding.index, "Binding");
                 define(resolver, statement.binding.index);
             }
 
             if (statement.binding?.value) {
-                declare(resolver, statement.binding.value);
+                declare(resolver, statement.binding.value, "Binding");
                 define(resolver, statement.binding.value);
             }
 
@@ -281,7 +346,9 @@ function resolveStatements(resolver, statements) {
  */
 export function resolve(resolver) {
     try {
+        beginScope(resolver);
         resolveStatements(resolver, resolver.interpreter.statements);
+        endScope(resolver);
     } catch (thrown) {
         if (thrown instanceof ResolvingError) {
             return;

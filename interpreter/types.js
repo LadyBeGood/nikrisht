@@ -50,7 +50,7 @@
  * 
  * @typedef {Object} Resolver
  * @property {Interpreter} interpreter
- * @property {Map<string, boolean>[]} scopes
+ * @property {Map<string, SymbolMetadata>[]} scopes
  * @property {number} functionDepth
  * @property {number} loopDepth
  */
@@ -493,4 +493,16 @@
  * @property {number} startColumn
  * @property {number} endLine
  * @property {number} endColumn
+*/
+
+/*=========================================*/
+/* Symbol Metadata                         */
+/*=========================================*/
+
+/**
+ * @typedef {Object} SymbolMetadata
+ * @property {boolean} defined
+ * @property {boolean} used
+ * @property {IdentifierExpression} node
+ * @property {"Variable" | "Constant" | "Function" | "Parameter" | "Binding"} kind
  */

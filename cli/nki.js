@@ -45,11 +45,12 @@ async function interpretFile(path) {
         interpret(interpreter);
     } catch (error) {
         if (error instanceof RangeError && error.message.includes("Maximum call stack size exceeded")) {
-            // console.error(messages.interpreterHasCrashed);
-            console.error(messages.implementationError(error.message));
+            console.error(messages.interpreterHasCrashed);
         } else if (error instanceof ImplementationError) {
-        }
+            console.error(messages.implementationError(error.message));
+        } 
 
+        console.log(error);
         process.exit(1);
     }
 

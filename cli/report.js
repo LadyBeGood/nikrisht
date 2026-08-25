@@ -1,14 +1,14 @@
 // @ts-check
 
-import { red, yellow, cyan, bold, dim, blue, yellowBright } from "ansis";
+import { red, yellow, cyan, bold, dim, blue } from "ansis";
 import path from "node:path";
 
 const TAB_WIDTH = 4;
 
 const SEVERITY_STYLE = {
-    error: { label: "ERROR", color: red },
-    warning: { label: "warning", color: yellow },
-    information: { label: "info", color: cyan },
+    error: { label: "Error", color: red },
+    warning: { label: "Warning", color: yellow },
+    information: { label: "Information", color: cyan },
 };
 
 /**
