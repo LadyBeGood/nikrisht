@@ -1,5 +1,6 @@
 // @ts-check
 
+import "../interpreter/types.js";
 import { red, yellow, bold, dim, blue } from "ansis";
 import path from "node:path";
 
@@ -38,13 +39,37 @@ function toExpandedColumn(rawLine, rawColumn) {
 }
 
 /**
- * Renders a single diagnostic in a rustc/javac-inspired format:
- * a greppable header line, a source snippet with line-number gutter,
- * and a caret underline spanning the exact offending range.
+ * Formats an interpreter diagnostic into a CLI-friendly code snippet 
+ * with line-number gutters and severity-colored caret (`^`) range underlines.
  *
- * Coordinates are 1-based; endLine/endColumn are exclusive (one past
- * the last character of the span).
+ * Coordinates are 1-based. `endColumn` is exclusive (1 character past the span end).
+ * Tab characters in `source` are automatically expanded to align carets correctly.
  *
+ * @example
+ * Single-line output:
+ * ```txt
+ * Warning: Constant "number" is declared but never used.
+ *   |
+ * 4 | const number = 20;
+ *   |       ^^^^^^
+ * C:\Users\HandsomeMan\project\input.nki:4:7
+ * ```
+ * 
+ * @example
+ * Multi-line output (interior lines underlined in full width):
+ * ```txt
+ * Error: Function "sort" expects an array, but got "string"
+ *    |
+ *  8 | sort("
+ *    |      ^^
+ *  9 | Hello
+ *    | ^^^^^^
+ * 10 | World
+ *    | ^^^^^^
+ * 11 | ");
+ *    | ^
+ * C:\Users\HandsomeMan\project\input.nki:8:6
+ *```
  * @param {Diagnostic} diagnostic
  * @param {string} source Full original source text.
  * @param {string} filePath Path to display in the header line.
@@ -54,50 +79,40 @@ export function formatDiagnostic(diagnostic, source, filePath) {
     const style = SEVERITY_STYLE[diagnostic.type];
     const severityColor = style.color;
 
-    const lines = source.split("\n");
-    const rawLine = lines[diagnostic.startLine - 1] ?? "";
-    const expandedLine = expandTabs(rawLine);
-
-    const isMultiLine = diagnostic.endLine > diagnostic.startLine;
-    const startCol = toExpandedColumn(rawLine, diagnostic.startColumn);
-    // For a single-line span, endColumn is exclusive within the same line.
-    // For a multi-line span we only render the start line, so the underline
-    // just runs to the end of that line and we note it continues further.
-    const endCol = isMultiLine
-        ? expandedLine.length + 1
-        : toExpandedColumn(rawLine, diagnostic.endColumn);
-
-    const gutterWidth = String(diagnostic.startLine).length;
+    const sourceLines = source.split("\n");
+    const gutterWidth = String(diagnostic.endLine).length;
     const gutter = " ".repeat(gutterWidth) + " " + dim("|");
-    const numberedGutter = dim(String(diagnostic.startLine).padStart(gutterWidth)) + " " + dim("|");
 
-    const caretCount = Math.max(1, endCol - startCol);
-    const carets = bold(severityColor("^".repeat(caretCount)));
-    const underlinePadding = " ".repeat(Math.max(0, startCol - 1));
-
-    const header =
-        bold(severityColor(`${style.label}:`)) +
-        " " +
-        bold(diagnostic.message);
-
+    const header = bold(severityColor(`${style.label}:`)) + " " + bold(diagnostic.message);
     const footer = createSourceLink(filePath, diagnostic.startLine, diagnostic.startColumn);
 
-    const lines_out = [
-        header,
-        gutter,
-        `${numberedGutter} ${expandedLine}`,
-        `${gutter} ${underlinePadding}${carets}`,
-        footer
-    ];
+    const linesOut = [header, gutter];
 
+    for (let lineNumber = diagnostic.startLine; lineNumber <= diagnostic.endLine; lineNumber++) {
+        const rawLine = sourceLines[lineNumber - 1] ?? "";
+        const expandedLine = expandTabs(rawLine);
 
-    if (isMultiLine) {
-        lines_out.push(
-            `${gutter} ${dim(`(span continues to line ${diagnostic.endLine})`)}`
-        );
+        const isFirstLine = lineNumber === diagnostic.startLine;
+        const isLastLine = lineNumber === diagnostic.endLine;
+
+        // Interior lines of a multi-line span are underlined in full.
+        // The first/last line only underline the part inside the span.
+        const startCol = isFirstLine ? toExpandedColumn(rawLine, diagnostic.startColumn) : 1;
+        const endCol = isLastLine ? toExpandedColumn(rawLine, diagnostic.endColumn) : expandedLine.length + 1;
+
+        const caretCount = Math.max(1, endCol - startCol);
+        const carets = bold(severityColor("^".repeat(caretCount)));
+        const underlinePadding = " ".repeat(Math.max(0, startCol - 1));
+
+        const numberedGutter = dim(String(lineNumber).padStart(gutterWidth)) + " " + dim("|");
+
+        linesOut.push(`${numberedGutter} ${expandedLine}`);
+        linesOut.push(`${gutter} ${underlinePadding}${carets}`);
     }
 
-    return lines_out.join("\n");
+    linesOut.push(footer);
+
+    return linesOut.join("\n");
 }
 
 /**
@@ -107,16 +122,17 @@ export function formatDiagnostic(diagnostic, source, filePath) {
  * @param {Diagnostic[]} diagnostics
  * @param {string} source
  * @param {string} filePath
+ * @param {Interpreter["host"]["logger"]} logger
  */
-export function report(diagnostics, source, filePath) {
+export function report(diagnostics, source, filePath, logger) {
     const sorted = [...diagnostics].sort((a, b) => {
         if (a.startLine !== b.startLine) return a.startLine - b.startLine;
         return a.startColumn - b.startColumn;
     });
 
     for (const diagnostic of sorted) {
-        console.error(formatDiagnostic(diagnostic, source, filePath));
-        console.error("");
+        logger(formatDiagnostic(diagnostic, source, filePath));
+        logger("");
     }
 
     const errorCount = diagnostics.filter((d) => d.type === "error").length;
@@ -131,7 +147,7 @@ export function report(diagnostics, source, filePath) {
     if (warningCount > 0) {
         parts.push(bold(yellow(`${warningCount} warning${warningCount === 1 ? "" : "s"}`)));
     }
-    console.error(parts.join(", "));
+    logger(parts.join(", "));
 }
 
 

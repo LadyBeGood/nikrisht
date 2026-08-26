@@ -1,18 +1,8 @@
 // @ts-check
 
 /**
- * @type {number[] | undefined}
- */
-let lineStarts;
-
-
-/**
  * Computes the offsets where each line begins for a source string.
  *
- * Why doesn't it directly modify the `lineStarts` variable? Well, because typescript
- * is stupid and doesn't do Inter preocedural analysis and will need a silly `lineStarts !== undefined`
- * guard in `getLineAndColumn`.
- * 
  * @param {string} source
  * @returns {number[]}
  */
@@ -32,17 +22,11 @@ function computeLineStarts(source) {
  * Computes the line and column for a character offset, using a
  * precomputed table of line-start offsets (see computeLineStarts).
  *
- * @param {string} source
+ * @param {number[]} lineStarts
  * @param {number} offset
- * @param {number} startingLine
- * @param {number} startingColumn
  * @returns {{ line: number, column: number }}
  */
-function getLineAndColumn(source, offset, startingLine, startingColumn) {
-    if (lineStarts === undefined) {
-        lineStarts = computeLineStarts(source);
-    }
-
+function getLineAndColumn(lineStarts, offset) {
     let low = 0;
     let high = lineStarts.length - 1;
 
@@ -56,8 +40,8 @@ function getLineAndColumn(source, offset, startingLine, startingColumn) {
         }
     }
 
-    const line = startingLine + low;
-    const column = startingColumn + (offset - lineStarts[low]);
+    const line = low + 1;
+    const column = (offset - lineStarts[low]) + 1;
 
     return { line, column };
 }
@@ -68,13 +52,16 @@ function getLineAndColumn(source, offset, startingLine, startingColumn) {
  *
  * @param {Interpreter} interpreter
  * @param {SourceSpan} node
- * @param {number} startingLine
- * @param {number} startingColumn
  * @returns {SourceRange}
  */
-export function getRange(interpreter, node, startingLine, startingColumn) {
-    const { line: startLine, column: startColumn } = getLineAndColumn(interpreter.source, node.start, startingLine, startingColumn);
-    const { line: endLine, column: endColumn } = getLineAndColumn(interpreter.source, node.end, startingLine, startingColumn);
+export function getRange(interpreter, node) {
+    // Compute (or reuse an interpreter-scoped cache) per-source, never module-scoped
+    if (interpreter.lineStarts === undefined) {
+        interpreter.lineStarts = computeLineStarts(interpreter.source);
+    }
+
+    const { line: startLine, column: startColumn } = getLineAndColumn(interpreter.lineStarts, node.start);
+    const { line: endLine, column: endColumn } = getLineAndColumn(interpreter.lineStarts, node.end);
 
     return { startLine, startColumn, endLine, endColumn };
 }

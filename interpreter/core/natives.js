@@ -1,15 +1,163 @@
 // @ts-check
 
+import { ImplementationError } from "../diagnostics/classes.js";
 import { error } from "../diagnostics/report.js";
 import "../types.js";
 import { is_Array, is_Boolean, is_Function, is_Null, is_Number, is_Object, is_String, type } from "./guards.js";
+
+
+/**
+ * 
+ * @param {_Type} data 
+ * @param {number} [indent=1] 
+ * @returns {string}
+ */
+function stringify(data, indent = 1) {
+    if (is_String(data)) {
+        return data;
+    } else if (is_Number(data) || is_Boolean(data) || is_Null(data)) {
+        return String(data);
+    } else if (is_Array(data)) {
+        /** 
+         * 0 => Symbol after opening "[", and each 2
+         * 1 => Symbol after each 0
+         * 2 => Symbol after each stringified data.
+         * @type {(string|number)[]} 
+         */
+        let result = ["["];
+        result.push(0);
+
+        for (let i = 0; i < data.length; i++) {
+            result.push(1);
+            if (is_String(data[i])) {
+                result.push(`"${data[i]}"`);
+            } else {
+                result.push(stringify(data[i], indent + 1));
+            }
+            result.push(2);
+            result.push(0);
+        }
+        
+        const singleLine = result.join("").length <= 50;
+
+        if (singleLine) {
+            // Remove trailing comma
+            if (data.length > 0) {
+                result.pop(); // 0
+                result.pop(); // 2
+            } else {
+                result.pop(); // Remove initial 0 marker
+            }
+
+            result = result.map(item => {
+                if (item === 0 || item === 1) {
+                    return "";
+                } else if (item === 2) {
+                    return ", "
+                } 
+                return item;
+            });
+            result.push("]");
+        } else {
+            result = result.map(item => {
+                if (item === 0) {
+                    return "\n";
+                } else if (item === 1) {
+                    return "    ".repeat(indent);
+                } else if (item === 2) {
+                    return ","
+                }
+                return item;
+            });
+            result.push("    ".repeat(indent - 1))
+            result.push("]");
+        }
+        
+        
+        return result.join("");
+    } else if (is_Function(data)) {
+        if (data.closure === undefined) {
+            return "<native function>";
+        } else if (data.declaration?.name === undefined) {
+            return "<anonymous function>";
+        } else {
+            return `<${data.declaration.name?.lexeme} function>`
+        }
+    } else if (is_Object(data)) {
+        /**
+         * 0 => Symbol after opening "{", and each 2
+         * 1 => Symbol after each 0
+         * 2 => Symbol after each stringified data.
+         * @type {(string|number)[]} 
+         */
+        let result = ["{"];
+        result.push(0);
+
+        for (const [key, value] of data.entries()) {
+            result.push(1);
+            if (is_String(key)) {
+                result.push(`"${key}"`);
+            } else {
+                result.push(stringify(key, indent + 1));
+            }
+            result.push(": ");
+            if (is_String(value)) {
+                result.push(`"${value}"`);
+            } else {
+                result.push(stringify(value, indent + 1));
+            }
+            result.push(2);
+            result.push(0);
+        }
+
+        const singleLine = result.join("").length <= 50;
+
+        if (singleLine) {
+            // Remove trailing comma
+            if (data.size > 0) {
+                result.pop(); // 0
+                result.pop(); // 2
+            } else {
+                result.pop(); // Remove initial 0 marker
+            }
+
+            result = result.map(item => {
+                if (item === 0 || item === 1) {
+                    return "";
+                } else if (item === 2) {
+                    return ", "
+                }
+                return item;
+            });
+            result.push("}");
+        } else {
+            result = result.map(item => {
+                if (item === 0) {
+                    return "\n";
+                } else if (item === 1) {
+                    return "    ".repeat(indent);
+                } else if (item === 2) {
+                    return ", "
+                }
+                return item;
+            });
+            result.push("    ".repeat(indent - 1))
+            result.push("}");
+        }
+
+        return result.join("");
+    }
+
+    throw new ImplementationError("Trying to stringify an unhandled data type.");
+}
+
 
 /** @type {Record<string, _Function>} */
 export const natives = {
     "write": {
         arity: 1,
-        call(args) {
-            console.log(args[0]);
+        call(args, _, executor) {
+            executor.interpreter.host.logger(stringify(args[0]));
             return null;
         }
     },
@@ -136,16 +284,16 @@ export const natives = {
             return args[0].size;
         }
     },
-    "sorted": {
+    "sort": {
         arity: 1,
         call(args, expression, executor) {
             if (!is_Array(args[0])) {
-                error(executor.interpreter, expression.arguments[0], `Function "sorted" expects an array, but got "${type(args[0])}"`, "executor");
+                error(executor.interpreter, expression.arguments[0], `Function "sort" expects an array, but got "${type(args[0])}"`, "executor");
             }
 
             for (let i = 0; i < args[0].length; i++) {
                 if (!is_Number(args[0][i])) {
-                    error(executor.interpreter, /** @type {ArrayExpression} */ (expression.arguments[0]).elements[i], `Function "sorted" requires all array items to be numbers, but found "${type(args[0][i])}"`, "executor");
+                    error(executor.interpreter, /** @type {ArrayExpression} */ (expression.arguments[0]).elements[i], `Function "sort" requires all array items to be numbers, but found "${type(args[0][i])}"`, "executor");
                 }
             }
 

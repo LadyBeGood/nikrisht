@@ -1,2 +1,2 @@
-# Utkrisht 
-Official Utkrisht language support.
+# Nikrisht 
+Official Nikrisht language support.

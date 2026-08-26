@@ -17,11 +17,13 @@
  * @property {Map<Expression, number>} locals
  * @property {Diagnostic[]} diagnostics Errors/warnings collected across all phases.
  * @property {boolean} success True if no diagnostics with severity level "error" were reported
+ * @property {number[] | undefined} lineStarts
  */
 
 
 /**
- * @typedef {"node" | "browser"} Host
+ * @typedef {Object} Host
+ * @property {(message: string) => void} logger
  */
 
 /*=========================================*/

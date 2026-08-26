@@ -22,6 +22,7 @@ export function createInterpreter(source, host) {
         locals: new Map(),
         diagnostics: [],
         success: true,
+        lineStarts: undefined,
     };
 }
 

@@ -59,9 +59,7 @@ function getPhaseError(phase) {
 export function error(interpreter, node, message, phase) {
     const ErrorClass = getPhaseError(phase);
 
-    const startingLine = interpreter.host === "browser" ? 0 : 1;
-    const startingColumn = interpreter.host === "browser" ? 0 : 1;
-    const { startLine, endLine, startColumn, endColumn } = getRange(interpreter, node, startingLine, startingColumn);
+    const { startLine, endLine, startColumn, endColumn } = getRange(interpreter, node);
 
     interpreter.diagnostics.push({
         type: "error",
@@ -85,9 +83,7 @@ export function error(interpreter, node, message, phase) {
  * @param {PhaseName} phase 
  */
 export function warn(interpreter, node, message, phase) {
-    const startingLine = interpreter.host === "browser" ? 0 : 1;
-    const startingColumn = interpreter.host === "browser" ? 0 : 1;
-    const { startLine, endLine, startColumn, endColumn } = getRange(interpreter, node, startingLine, startingColumn);
+    const { startLine, endLine, startColumn, endColumn } = getRange(interpreter, node);
 
     interpreter.diagnostics.push({
         type: "warning",

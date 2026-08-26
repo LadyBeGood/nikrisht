@@ -22,42 +22,10 @@ export function createParser(interpreter) {
 /**
  * 
  * @param {Parser} parser Parser state. 
- * @param {number} position 
- * @returns {Token}
- */
-function peekAtOffset(parser, position) {
-    return parser.interpreter.tokens[parser.current + position];
-}
-
-/**
- * 
- * @param {Parser} parser Parser state. 
  * @returns {Token}
  */
 function peek(parser) {
-    return peekAtOffset(parser, 0);
-}
-
-/**
- * Checks whether the token at the given offset from the parser's current position matches any of the expected token types.
- * 
- * Positive offsets look ahead, negative offsets look behind, and `0` checks the current token.
- * 
- * This function does not consume any tokens.
- * 
- * @param {Parser} parser Parser state. 
- * @param {number} offset Offset from the current token. Can be positive, negative, or `0`.
- * @param  {...TokenType} expected Expected token types.
- * @returns {boolean} `true` if the token at the specified offset matches one of the expected types, otherwise `false`.
- */
-function checkAtOffset(parser, offset, ...expected) {
-    for (const type of expected) {
-        if (peekAtOffset(parser, offset).type === type) {
-            return true;
-        }
-    }
-
-    return false;
+    return parser.interpreter.tokens[parser.current];
 }
 
 /**
@@ -70,8 +38,15 @@ function checkAtOffset(parser, offset, ...expected) {
  * @returns {boolean} `true` if the current token matches one of the expected token types, otherwise `false`.
  */
 function check(parser, ...expected) {
-    return checkAtOffset(parser, 0, ...expected)
+    for (const type of expected) {
+        if (peek(parser).type === type) {
+            return true;
+        }
+    }
+
+    return false;
 }
+
 
 
 /**
@@ -80,7 +55,7 @@ function check(parser, ...expected) {
  * @returns {boolean}
  */
 function isAtEnd(parser) {
-    return check(parser, "EndOfFile");
+    return peek(parser).type === "EndOfFile";
 }
 
 
@@ -130,7 +105,9 @@ function match(parser, ...expected) {
  * @returns 
  */
 function synchronize(parser) {
-    parser.current++;
+    if (!isAtEnd(parser)) {
+        parser.current++;
+    }
 
     while (!isAtEnd(parser)) {
         const tokenType = peek(parser).type;

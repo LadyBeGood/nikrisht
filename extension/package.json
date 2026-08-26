@@ -1,13 +1,12 @@
 {
-    "name": "utkrisht",
-    "displayName": "Utkrisht",
-    "description": "Official language support for the Utkrisht programming language.",
+    "name": "nikrisht",
+    "displayName": "Nikrisht",
+    "description": "Official language support for the Nikrisht programming language.",
     "repository": {
         "type": "git",
-        "url": "https://github.com/LadyBeGood/utkrisht"
+        "url": "https://github.com/LadyBeGood/nikrisht"
     },
     "version": "0.0.1",
-    "icon": "./icon.jpg",
     "publisher": "LadyBeGood",
     "engines": {
         "vscode": "^1.107.0"
@@ -17,56 +16,61 @@
     ],
     "type": "module",
     "activationEvents": [],
-    "main": "./src/main.js",
+    "main": "./src/extension.js",
     "contributes": {
         "commands": [
             {
-                "command": "utkrisht.run",
+                "command": "nikrisht.run",
                 "title": "Run",
                 "icon": "$(run)"
             }
         ],
         "languages": [
             {
-                "id": "utkrisht",
+                "id": "nikrisht",
                 "aliases": [
-                    "Utkrisht"
+                    "Nikrisht"
                 ],
                 "extensions": [
-                    ".uki"
+                    ".nki"
                 ],
                 "configuration": "./language-configuration.json"
             }
         ],
         "grammars": [
             {
-                "language": "utkrisht",
-                "scopeName": "source.utkrisht",
-                "path": "./syntaxes/utkrisht.json"
+                "language": "nikrisht",
+                "scopeName": "source.nikrisht",
+                "path": "./syntaxes/nikrisht.json"
             }
         ],
         "menus": {
             "editor/title": [
                 {
-                    "when": "resourceLangId == utkrisht",
-                    "command": "utkrisht.run",
+                    "when": "resourceLangId == nikrisht",
+                    "command": "nikrisht.run",
                     "group": "navigation"
                 }
-                
             ]
         }
     },
     "scripts": {
-        "lint": "eslint .",
         "pretest": "npm run lint",
+        "lint": "eslint .",
         "test": "vscode-test"
     },
     "devDependencies": {
-        "@types/vscode": "^1.107.0",
+        "@types/vscode": "^1.134.0",
         "@types/mocha": "^10.0.10",
-        "@types/node": "22.x",
-        "eslint": "^9.36.0",
-        "@vscode/test-cli": "^0.0.11",
-        "@vscode/test-electron": "^2.5.2"
+        "@types/node": "24.x",
+        "typescript-eslint": "^8.61.1",
+        "eslint": "^10.5.0",
+        "typescript": "^6.0.3",
+        "@vscode/test-cli": "^0.0.15",
+        "@vscode/test-electron": "^3.0.0"
+    },
+    "overrides": {
+        "diff": "^8.0.4",
+        "serialize-javascript": "^7.0.6"
     }
 }

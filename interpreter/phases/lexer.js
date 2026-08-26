@@ -50,7 +50,17 @@ function peekNext(lexer) {
 }
 
 /**
- * Consume and return the current character.
+ * 
+ *
+ * @param {Lexer} lexer Lexer state.
+ * @param {number} [count=1] 
+ */
+function advance(lexer, count = 1) {
+    lexer.current += count;
+}
+
+/**
+ * Consume and return the current character. Unckecked.
  *
  * @param {Lexer} lexer Lexer state.
  * @returns {string | undefined} The consumed character, or `undefined` if the lexer is at EndOfFile.
@@ -167,7 +177,7 @@ function error(lexer, message) {
  */
 function lexString(lexer) {
     while (!isAtEnd(lexer) && !check(lexer, '"')) {
-        consume(lexer);
+        advance(lexer);
     }
 
     if (isAtEnd(lexer)) {
@@ -175,7 +185,7 @@ function lexString(lexer) {
     }
 
     // consume closing quote
-    consume(lexer)
+    advance(lexer)
 
     addToken(lexer, "StringLiteral")
 }
@@ -186,14 +196,14 @@ function lexString(lexer) {
  */
 function lexNumber(lexer) {
     while (isDigit(peek(lexer))) {
-        consume(lexer);
+        advance(lexer);
     }
 
     if (check(lexer, ".") && isDigit(peekNext(lexer))) {
-        consume(lexer);
+        advance(lexer);
 
         while (isDigit(peek(lexer))) {
-            consume(lexer);
+            advance(lexer);
         }
     }
 
@@ -206,7 +216,7 @@ function lexNumber(lexer) {
  */
 function lexIdentifier(lexer) {
     while (isIdentifierPart(peek(lexer))) {
-        consume(lexer);
+        advance(lexer);
     }
 
     const lexeme = lexer.interpreter.source.slice(lexer.start, lexer.current);
@@ -323,10 +333,34 @@ function lexToken(lexer) {
             // Skip whitespace
             break;
         case "#":
-            // Skip comments
-            while (!isAtEnd(lexer) && !check(lexer, "\n")) {
-                consume(lexer);
+            if (match(lexer, "*")) {
+                // Block comment: #* ... *#
+                let depth = 1;
+
+                while (!isAtEnd(lexer) && depth > 0) {
+                    if (check(lexer, "#") && peekNext(lexer) === "*") {
+                        advance(lexer, 2);
+                        depth++;
+                    } else if (check(lexer, "*") && peekNext(lexer) === "#") {
+                        advance(lexer, 2);
+                        depth--;
+                    } else {
+                        advance(lexer);
+                    }
+                }
+
+                if (depth > 0) {
+                    lexer.start = lexer.current;
+                    error(lexer, "Unterminated block comment.");
+                }
+            } else {
+                // Regular comment: # ... \n
+                while (!isAtEnd(lexer) && !check(lexer, "\n")) {
+                    advance(lexer);
+                }
             }
+
+            lexer.start = lexer.current;
             break;
         case '"':
             lexString(lexer);
