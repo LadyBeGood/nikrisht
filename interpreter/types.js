@@ -15,7 +15,7 @@
  * @property {Token[]} tokens Tokens produced by the lexer phase.
  * @property {Statement[]} statements Abstract syntax tree produced by the parser phase.
  * @property {Map<Expression, number>} locals
- * @property {Diagnostic[]} diagnostics Errors/warnings/information collected across all phases.
+ * @property {Diagnostic[]} diagnostics Errors/warnings collected across all phases.
  * @property {boolean} success True if no diagnostics with severity level "error" were reported
  */
 
@@ -486,7 +486,7 @@
 
 /**
  * @typedef {Object} Diagnostic
- * @property {"error" | "warning" | "information"} type
+ * @property {"error" | "warning"} type
  * @property {string} phase
  * @property {string} message Fully formatted message, placeholders already substituted
  * @property {number} startLine 

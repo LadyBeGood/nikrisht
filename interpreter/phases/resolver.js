@@ -269,7 +269,7 @@ function resolveStatement(resolver, statement) {
 
             // Check if expression is pure and its result is discarded
             if (isPureExpression(statement.expression)) {
-                warn(resolver.interpreter, statement, `Expression result is never used.`, "resolver");
+                warn(resolver.interpreter, statement.expression, `Expression result is never used.`, "resolver");
             }
             break;
         case "IfStatement":

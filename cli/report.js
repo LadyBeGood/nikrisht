@@ -1,6 +1,6 @@
 // @ts-check
 
-import { red, yellow, cyan, bold, dim, blue } from "ansis";
+import { red, yellow, bold, dim, blue } from "ansis";
 import path from "node:path";
 
 const TAB_WIDTH = 4;
@@ -8,7 +8,6 @@ const TAB_WIDTH = 4;
 const SEVERITY_STYLE = {
     error: { label: "Error", color: red },
     warning: { label: "Warning", color: yellow },
-    information: { label: "Information", color: cyan },
 };
 
 /**
@@ -77,7 +76,6 @@ export function formatDiagnostic(diagnostic, source, filePath) {
     const underlinePadding = " ".repeat(Math.max(0, startCol - 1));
 
     const header =
-        "\n" +
         bold(severityColor(`${style.label}:`)) +
         " " +
         bold(diagnostic.message);

@@ -1,7 +1,36 @@
 // @ts-check
 
 /**
- * Computes the line and column for a character offset in the source.
+ * @type {number[] | undefined}
+ */
+let lineStarts;
+
+
+/**
+ * Computes the offsets where each line begins for a source string.
+ *
+ * Why doesn't it directly modify the `lineStarts` variable? Well, because typescript
+ * is stupid and doesn't do Inter preocedural analysis and will need a silly `lineStarts !== undefined`
+ * guard in `getLineAndColumn`.
+ * 
+ * @param {string} source
+ * @returns {number[]}
+ */
+function computeLineStarts(source) {
+    const starts = [0];
+
+    for (let i = 0; i < source.length; i++) {
+        if (source[i] === "\n") {
+            starts.push(i + 1);
+        }
+    }
+
+    return starts;
+}
+
+/**
+ * Computes the line and column for a character offset, using a
+ * precomputed table of line-start offsets (see computeLineStarts).
  *
  * @param {string} source
  * @param {number} offset
@@ -10,17 +39,25 @@
  * @returns {{ line: number, column: number }}
  */
 function getLineAndColumn(source, offset, startingLine, startingColumn) {
-    let line = startingLine;
-    let column = startingColumn;
+    if (lineStarts === undefined) {
+        lineStarts = computeLineStarts(source);
+    }
 
-    for (let i = 0; i < offset; i++) {
-        if (source[i] === "\n") {
-            line++;
-            column = startingColumn;
+    let low = 0;
+    let high = lineStarts.length - 1;
+
+    while (low < high) {
+        const mid = Math.floor((low + high + 1) / 2);
+
+        if (lineStarts[mid] <= offset) {
+            low = mid;
         } else {
-            column++;
+            high = mid - 1;
         }
     }
+
+    const line = startingLine + low;
+    const column = startingColumn + (offset - lineStarts[low]);
 
     return { line, column };
 }
