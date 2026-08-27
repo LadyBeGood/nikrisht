@@ -1,14 +1,28 @@
 {
-    "name": "Uki Land",
+    "name": "Nikrisht",
+    "short_name": "Nikrisht",
+    "description": "Nikrisht Playground",
     "start_url": "../",
     "display": "standalone",
     "background_color": "#1A1A1A",
     "theme_color": "#1A1A1A",
     "icons": [
         {
-            "src": "resources/images/avatar.png",
-            "sizes": "350x350",
+            "src": "../assets/nki.png",
+            "sizes": "1024x1024",
             "type": "image/png"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "../assets/playground-mobile.png",
+            "sizes": "450x970",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "../assets/playground-desktop.png",
+            "sizes": "1920x970",
+            "form_factor": "wide"
         }
     ]
 }

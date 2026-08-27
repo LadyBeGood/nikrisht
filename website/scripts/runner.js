@@ -2,23 +2,26 @@
 import { elements } from "./elements.js";
 
 export const colors = {
-    red: (text) => 
+    red: (text) =>
         `<span class="console-red">${text}</span>`,
-    yellow: (text) => 
+    yellow: (text) =>
         `<span class="console-yellow">${text}</span>`,
-    blue: (text) => 
+    blue: (text) =>
         `<span class="console-blue">${text}</span>`,
-    bold: (text) => 
+    bold: (text) =>
         `<span class="console-bold">${text}</span>`,
-    dim: (text) => 
+    dim: (text) =>
         `<span class="console-dim">${text}</span>`,
 }
 
 
-export const logger = (message) => {
-    elements.screenDisplay.innerHTML += message + "\n";
-    console.log(JSON.stringify(elements.screenDisplay.innerHTML));
-};
+export function logger(message) {
+    if (message.match(/\<span class=\"console\-(red|yellow)\"\>\d+ (errors?|warnings?)<\/span\>\<\/span>/)) {
+        console.log(message)
+        return;
+    }
+    elements.loggerTarget.innerHTML += message + "\n";
+}
 
 
 export function escape(text) {

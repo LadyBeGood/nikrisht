@@ -105,14 +105,14 @@ func fibonacci(number) {
 write(fibonacci(8));
 ```
 
-More examples are available in the [playground](https://ladybegood.github.io/nikrisht).
 
 ## Getting Started
 
 ### Playground
 You can try Nikrisht instantly in your browser without any installation or setup.
 
-<img src="./assets/playground-mobile.png" height="500px" />
+<img src="./assets/playground-mobile.png" height="300px" /> 
+<img src="./assets/playground-desktop.png" width="594px" />
 
 
 ### Installation

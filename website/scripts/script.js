@@ -594,24 +594,67 @@ export async function setupDocumentation() {
 function setupActionButtons(editor) {
     elements.actionPlay.addEventListener("click", () => {
         const source = editor.getValue();
-        elements.screenDisplay.innerHTML = "";
-        run(source, "Playground", {
+        elements.loggerTarget.innerHTML = "";
+        const interpreter = run(source, "Playground", {
             colors,
             logger,
             escape
+        });
+
+        let numberOfErrors = 0;
+        let numberOfWarnings = 0;
+        for (const diagnostic of interpreter.diagnostics) {
+            if (diagnostic.type === "error") {
+                numberOfErrors++;
+            } else {
+                numberOfWarnings++;
+            }
+        }
+
+        if (numberOfErrors === 0 && numberOfWarnings === 0) {
+            elements.consoleSuccess.style.display = "flex";
+            elements.consoleError.style.display = "none";
+            elements.consoleWarning.style.display = "none";
+        } else {
+            elements.consoleSuccess.style.display = "none";
+
+            if (numberOfErrors > 0) {
+                elements.consoleError.style.display = "flex";
+                elements.errorCount.textContent = numberOfErrors + " " + (numberOfErrors === 1 ? "error" : "errors");
+            }
+            
+            if (numberOfWarnings > 0) {
+                elements.consoleWarning.style.display = "flex";
+                elements.warningCount.textContent = numberOfWarnings + " " + (numberOfWarnings === 1 ? "warning" : "warnings");
+            }
+        }
+
+        elements.initialScreenList.forEach(initialScreen => {
+            initialScreen.style.display = "none";
         })
+
+        // TEMPORARY
+        document.querySelector(`[data-tree-log]`).textContent = JSON.stringify(interpreter.statements, null, 4);
     });
 }
 
 function setupPaneButtons() {
-    elements.paneButtonList.forEach(paneButton => paneButton.addEventListener("click", () => {
-        for (const paneButton2 of elements.paneButtonList) {
-            if (paneButton2 !== paneButton) {
-                paneButton2.classList.remove("active");
-            }
-            paneButton.classList.add("active");
-        }
-    }))
+    elements.paneButtonList.forEach(paneButton => {
+        paneButton.addEventListener("click", () => {
+            const targetPane = paneButton.dataset.paneButton;
+
+            // Toggle active class on buttons
+            elements.paneButtonList.forEach(btn => {
+                btn.classList.toggle("active", btn === paneButton);
+            });
+
+            // Toggle pane content visibility based on target key
+            elements.paneContentList.forEach(paneContent => {
+                const isMatch = paneContent.dataset.paneContent === targetPane;
+                paneContent.style.display = isMatch ? "block" : "none";
+            });
+        })
+    });
 }
 
 function main() {

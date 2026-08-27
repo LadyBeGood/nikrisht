@@ -4,6 +4,7 @@
 
 # Personal
 /demo
+extension/assets/
 
 ### Nim ###
 nimcache/

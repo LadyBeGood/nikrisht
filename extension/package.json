@@ -15,7 +15,7 @@
         "Other"
     ],
     "license": "UNLICENSED",
-    "icon": "./nki.png",
+    "icon": "./assets/nki.png",
     "activationEvents": [],
     "main": "./out/extension.js",
     "contributes": {
@@ -33,8 +33,8 @@
                 "extensions": [ ".nki" ],
                 "configuration": "./language-configuration.json",
                 "icon": {
-                    "light": "./nki-light.svg",
-                    "dark": "./nki-dark.svg"
+                    "light": "./assets/nki-light.svg",
+                    "dark": "./assets/nki-dark.svg"
                 }
             }
         ],
@@ -56,7 +56,8 @@
         }
     },
     "scripts": {
-        "build": "esbuild src/extension.js --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+        "copy-assets": "node ./src/copy-assets.js",
+        "build": "npm run copy-assets && esbuild src/extension.js --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
         "vscode:prepublish": "npm run build"
     },
     "devDependencies": {
