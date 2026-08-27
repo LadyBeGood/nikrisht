@@ -6,7 +6,7 @@
         "type": "git",
         "url": "https://github.com/LadyBeGood/nikrisht"
     },
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "LadyBeGood",
     "engines": {
         "vscode": "^1.107.0"
@@ -14,9 +14,10 @@
     "categories": [
         "Other"
     ],
-    "type": "module",
+    "license": "UNLICENSED",
+    "icon": "./nki.png",
     "activationEvents": [],
-    "main": "./src/extension.js",
+    "main": "./out/extension.js",
     "contributes": {
         "commands": [
             {
@@ -28,13 +29,13 @@
         "languages": [
             {
                 "id": "nikrisht",
-                "aliases": [
-                    "Nikrisht"
-                ],
-                "extensions": [
-                    ".nki"
-                ],
-                "configuration": "./language-configuration.json"
+                "aliases": [ "Nikrisht" ],
+                "extensions": [ ".nki" ],
+                "configuration": "./language-configuration.json",
+                "icon": {
+                    "light": "./nki-light.svg",
+                    "dark": "./nki-dark.svg"
+                }
             }
         ],
         "grammars": [
@@ -55,22 +56,18 @@
         }
     },
     "scripts": {
-        "pretest": "npm run lint",
-        "lint": "eslint .",
-        "test": "vscode-test"
+        "build": "esbuild src/extension.js --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+        "vscode:prepublish": "npm run build"
     },
     "devDependencies": {
-        "@types/vscode": "^1.134.0",
-        "@types/mocha": "^10.0.10",
-        "@types/node": "24.x",
-        "typescript-eslint": "^8.61.1",
-        "eslint": "^10.5.0",
-        "typescript": "^6.0.3",
-        "@vscode/test-cli": "^0.0.15",
-        "@vscode/test-electron": "^3.0.0"
+        "@types/vscode": "^1.107.0",
+        "eslint": "^10.5.0"
     },
     "overrides": {
         "diff": "^8.0.4",
         "serialize-javascript": "^7.0.6"
+    },
+    "dependencies": {
+        "esbuild": "^0.28.2"
     }
 }

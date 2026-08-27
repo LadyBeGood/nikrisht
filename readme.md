@@ -112,7 +112,14 @@ More examples are available in the [playground](https://ladybegood.github.io/nik
 ### Playground
 You can try Nikrisht instantly in your browser without any installation or setup.
 
+<img src="./assets/playground-mobile.png" height="500px" />
+
+
 ### Installation
+[![nikrisht on npm](https://img.shields.io/badge/npm-nikrisht-FAFAFA?logo=npm)](https://www.npmjs.com/package/nikrisht)
+[![npm version](https://img.shields.io/npm/v/nikrisht.svg?label=version)](https://www.npmjs.com/package/nikrisht)
+[![npm downloads](https://img.shields.io/npm/dt/nikrisht.svg)](https://www.npmjs.com/package/nikrisht)
+[![npm license](https://img.shields.io/npm/l/nikrisht.svg)](https://www.npmjs.com/package/nikrisht)
 
 ```bash
 npm install -g nikrisht
@@ -125,6 +132,9 @@ nki input.nki
 ```
 
 ### Editor setup
+
+<img src="./assets/extension.png" alt="Nikrisht VS Code extension" />
+
 For the best development experience, install the official **Nikrisht VS Code Extension** to get full syntax highlighting, error checking, and code snippets:
 
 1. Open VS Code.

@@ -1,0 +1,7 @@
+Copyright (c) 2026 LadyBeGood. All rights reserved.
+
+This software and associated documentation files (the "Software") are the proprietary 
+and confidential property of LadyBeGood. 
+
+Unauthorized copying, distribution, modification, or public display of this Software, 
+via any medium, is strictly prohibited.

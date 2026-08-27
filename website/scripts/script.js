@@ -1,5 +1,7 @@
 import { examples } from "./examples.js"
 import { elements } from "./elements.js"
+import { colors, logger, escape } from "./runner.js"
+import { run } from "../../cli/run.js";
 
 function debug(x) {
     console.log(x);
@@ -63,7 +65,7 @@ function setupSettings(editor) {
     const currentKeybinding = document.querySelector("[data-settings-keybinding='active']").value;
     editor.setKeyboardHandler(currentKeybinding !== "null" ? currentKeybinding : null);
 
-    elements.settingsKeybindingCollection.forEach(function (element) {
+    elements.settingsKeybindingList.forEach(function (element) {
         element.addEventListener("click", function () {
 
             elements.settingsKeybindings.forEach(function (button) {
@@ -221,7 +223,7 @@ function setupResponsiveness() {
 
 
 function toggleShortcutButtonsVisibility() {
-    console.log(elements.shortcutButtons.dataset.isVisible)
+    // console.log(elements.shortcutButtons.dataset.isVisible)
     if (elements.shortcutButtons.dataset.isVisible === "true") {
         elements.shortcutButtons.style.transform = "translateY(100%)";
         elements.left.style.paddingBottom = "0";
@@ -231,9 +233,9 @@ function toggleShortcutButtonsVisibility() {
         elements.left.style.paddingBottom = "72px";
         elements.shortcutButtonsToggler.querySelector("img").style.transform = "rotate(0deg)";
     }
-    
+
     elements.shortcutButtons.dataset.isVisible = elements.shortcutButtons.dataset.isVisible === "true" ? "false" : "true";
-    
+
     // Prevents engine from batching this styling
     setTimeout(() => elements.left.style.setProperty("--transition-duration", "0.25s"));
 }
@@ -253,8 +255,8 @@ function setupShortcutButtons(editor) {
         elements.shortcutButtonLeft,
         elements.shortcutButtonRight,
     ].forEach(button => {
-        button.addEventListener("pointerdown", (event) => { 
-            event.preventDefault() 
+        button.addEventListener("pointerdown", (event) => {
+            event.preventDefault()
         });
     });
 
@@ -335,20 +337,20 @@ export async function setupDocumentation() {
             code(token) {
                 return `<pre><code class="language-nikrisht">${token.text}</code></pre>`;
             }
-        } 
+        }
     });
-    
+
 
     // Load the active item on startup, or fall back to the first available sub-topic item
     const initialActiveSubtopic =
         elements.documentationSidebar.querySelector("[data-sub-topic].active") ??
-        elements.documentationSubTopicCollection[0];
+        elements.documentationSubTopicList[0];
 
     // ==========================================
     // PRELOAD MATRIX (Load everything concurrently)
     // ==========================================
     async function preloadAllFiles() {
-        const fetchPromises = Array.from(elements.documentationSubTopicCollection).map(async (button) => {
+        const fetchPromises = Array.from(elements.documentationSubTopicList).map(async (button) => {
             const fileKey = button.dataset.fileName;
             const filePath = `./documentation/${fileKey}.md`;
 
@@ -396,9 +398,9 @@ export async function setupDocumentation() {
     // ==========================================
 
     // Handle switching between sub-topics (Instant from cache)
-    elements.documentationSubTopicCollection.forEach(subTopic => {
+    elements.documentationSubTopicList.forEach(subTopic => {
         subTopic.addEventListener("click", () => {
-            elements.documentationSubTopicCollection.forEach(item => item.classList.remove("active"));
+            elements.documentationSubTopicList.forEach(item => item.classList.remove("active"));
             subTopic.classList.add("active");
 
             const fileKey = subTopic.dataset.fileName;
@@ -407,7 +409,7 @@ export async function setupDocumentation() {
     });
 
     // Handle opening and closing folder directories
-    elements.documentationTopicNameCollection.forEach(heading => {
+    elements.documentationTopicNameList.forEach(heading => {
         heading.addEventListener("click", () => {
             const parentTopicElement = heading.closest("[data-topic]");
             if (parentTopicElement) {
@@ -445,7 +447,7 @@ export async function setupDocumentation() {
         searchMatches = [];
 
         // Scan the pre-rendered text cache using rapid string indexing
-        elements.documentationSubTopicCollection.forEach(button => {
+        elements.documentationSubTopicList.forEach(button => {
             const fileKey = button.dataset.fileName;
             const textContent = fileTextCache[fileKey] || "";
             const lowerTextContent = textContent.toLowerCase();
@@ -521,7 +523,7 @@ export async function setupDocumentation() {
 
         const currentMatch = searchMatches[currentMatchIndex];
 
-        elements.documentationSubTopicCollection.forEach(item => item.classList.remove("active"));
+        elements.documentationSubTopicList.forEach(item => item.classList.remove("active"));
         currentMatch.subTopicButton.classList.add("active");
 
         const sourceHTML = fileContentCache[currentMatch.fileKey];
@@ -588,11 +590,37 @@ export async function setupDocumentation() {
     });
 }
 
+
+function setupActionButtons(editor) {
+    elements.actionPlay.addEventListener("click", () => {
+        const source = editor.getValue();
+        elements.screenDisplay.innerHTML = "";
+        run(source, "Playground", {
+            colors,
+            logger,
+            escape
+        })
+    });
+}
+
+function setupPaneButtons() {
+    elements.paneButtonList.forEach(paneButton => paneButton.addEventListener("click", () => {
+        for (const paneButton2 of elements.paneButtonList) {
+            if (paneButton2 !== paneButton) {
+                paneButton2.classList.remove("active");
+            }
+            paneButton.classList.add("active");
+        }
+    }))
+}
+
 function main() {
     const editor = ace.edit("editor");
     setupResponsiveness(editor);
     setupAceEditor(editor);
     setupShortcutButtons(editor);
+    setupActionButtons(editor);
+    setupPaneButtons();
     setupDocumentation();
 }
 

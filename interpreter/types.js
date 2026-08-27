@@ -24,6 +24,13 @@
 /**
  * @typedef {Object} Host
  * @property {(message: string) => void} logger
+ * @property {Record<CurrentlyRequiredColors, ColorFunction>} colors
+ * @property {(text: string) => string} escape Escapes raw source text for the host's output format. Defaults to identity (no-op) for terminal/plain-text hosts.
+ */
+
+/**
+ * @typedef { "red" | "yellow" | "bold" | "dim" | "blue" } CurrentlyRequiredColors
+ * @typedef {((text: string) => string)} ColorFunction
  */
 
 /*=========================================*/

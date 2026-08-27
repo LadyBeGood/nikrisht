@@ -3,7 +3,7 @@
 
 import "../types.js";
 import { is_Array, is_Boolean, is_Function, is_Null, is_Number, is_Object, is_String, type } from "../core/guards.js";
-import { natives } from "../core/natives.js";
+import { natives, stringify } from "../core/natives.js";
 import { assign, assignAt, createEnvironment, declare, lookup, lookupAt } from "../core/environment.js";
 import { create_Function } from "../core/function.js";
 import { ExitSignal, ReturnSignal, SkipSignal } from "../core/signals.js";
@@ -377,7 +377,7 @@ function executeExpression(executor, expression) {
                 const value = subject.get(index);
 
                 if (value === undefined) {
-                    return null;
+                    error(executor.interpreter, expression.property, `Property ${stringify(index, undefined, true)} does not exist on object`, "executor");
                 }
 
                 return value;

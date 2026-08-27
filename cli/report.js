@@ -1,14 +1,15 @@
 // @ts-check
 
 import "../interpreter/types.js";
-import { red, yellow, bold, dim, blue } from "ansis";
-import path from "node:path";
 
 const TAB_WIDTH = 4;
 
+/**
+ * @type {Record<Diagnostic["type"], {label: string, color: CurrentlyRequiredColors}>}
+ */
 const SEVERITY_STYLE = {
-    error: { label: "Error", color: red },
-    warning: { label: "Warning", color: yellow },
+    error: { label: "Error", color: "red" },
+    warning: { label: "Warning", color: "yellow" },
 };
 
 /**
@@ -73,24 +74,27 @@ function toExpandedColumn(rawLine, rawColumn) {
  * @param {Diagnostic} diagnostic
  * @param {string} source Full original source text.
  * @param {string} filePath Path to display in the header line.
+ * @param {Interpreter["host"]["colors"]} colors 
+ * @param {Interpreter["host"]["escape"]} escape
  * @returns {string}
  */
-export function formatDiagnostic(diagnostic, source, filePath) {
+export function formatDiagnostic(diagnostic, source, filePath, colors, escape) {
     const style = SEVERITY_STYLE[diagnostic.type];
     const severityColor = style.color;
 
     const sourceLines = source.split("\n");
     const gutterWidth = String(diagnostic.endLine).length;
-    const gutter = " ".repeat(gutterWidth) + " " + dim("|");
+    const gutter = " ".repeat(gutterWidth) + " " + colors.dim("|");
 
-    const header = bold(severityColor(`${style.label}:`)) + " " + bold(diagnostic.message);
-    const footer = createSourceLink(filePath, diagnostic.startLine, diagnostic.startColumn);
+    const header = colors.bold(colors[severityColor](`${style.label}:`)) + " " + colors.bold(diagnostic.message);
+    const footer = createSourceLink(filePath, diagnostic.startLine, diagnostic.startColumn, colors);
 
     const linesOut = [header, gutter];
 
     for (let lineNumber = diagnostic.startLine; lineNumber <= diagnostic.endLine; lineNumber++) {
         const rawLine = sourceLines[lineNumber - 1] ?? "";
         const expandedLine = expandTabs(rawLine);
+        const escapedLine = escape(expandedLine);
 
         const isFirstLine = lineNumber === diagnostic.startLine;
         const isLastLine = lineNumber === diagnostic.endLine;
@@ -101,12 +105,12 @@ export function formatDiagnostic(diagnostic, source, filePath) {
         const endCol = isLastLine ? toExpandedColumn(rawLine, diagnostic.endColumn) : expandedLine.length + 1;
 
         const caretCount = Math.max(1, endCol - startCol);
-        const carets = bold(severityColor("^".repeat(caretCount)));
+        const carets = colors.bold(colors[severityColor]("^".repeat(caretCount)));
         const underlinePadding = " ".repeat(Math.max(0, startCol - 1));
 
-        const numberedGutter = dim(String(lineNumber).padStart(gutterWidth)) + " " + dim("|");
+        const numberedGutter = colors.dim(String(lineNumber).padStart(gutterWidth)) + " " + colors.dim("|");
 
-        linesOut.push(`${numberedGutter} ${expandedLine}`);
+        linesOut.push(`${numberedGutter} ${escapedLine}`);
         linesOut.push(`${gutter} ${underlinePadding}${carets}`);
     }
 
@@ -122,16 +126,18 @@ export function formatDiagnostic(diagnostic, source, filePath) {
  * @param {Diagnostic[]} diagnostics
  * @param {string} source
  * @param {string} filePath
- * @param {Interpreter["host"]["logger"]} logger
+ * @param {Interpreter["host"]} host
  */
-export function report(diagnostics, source, filePath, logger) {
+export function report(diagnostics, source, filePath, host) {
+    const { logger, colors, escape } = host;
+
     const sorted = [...diagnostics].sort((a, b) => {
         if (a.startLine !== b.startLine) return a.startLine - b.startLine;
         return a.startColumn - b.startColumn;
     });
 
     for (const diagnostic of sorted) {
-        logger(formatDiagnostic(diagnostic, source, filePath));
+        logger(formatDiagnostic(diagnostic, source, filePath, colors, escape));
         logger("");
     }
 
@@ -142,10 +148,10 @@ export function report(diagnostics, source, filePath, logger) {
 
     const parts = [];
     if (errorCount > 0) {
-        parts.push(bold(red(`${errorCount} error${errorCount === 1 ? "" : "s"}`)));
+        parts.push(colors.bold(colors.red(`${errorCount} error${errorCount === 1 ? "" : "s"}`)));
     }
     if (warningCount > 0) {
-        parts.push(bold(yellow(`${warningCount} warning${warningCount === 1 ? "" : "s"}`)));
+        parts.push(colors.bold(colors.yellow(`${warningCount} warning${warningCount === 1 ? "" : "s"}`)));
     }
     logger(parts.join(", "));
 }
@@ -162,11 +168,17 @@ export function report(diagnostics, source, filePath, logger) {
  * @param {string} filePath Absolute or relative file path
  * @param {number} line 1-based line number
  * @param {number} column 1-based column number
+ * @param {Interpreter["host"]["colors"]} colors 
  * @returns {string}
  */
-export function createSourceLink(filePath, line, column) {
-    const absolutePath = path.resolve(filePath);
-    return `${blue(absolutePath)}${dim(":")}${yellow(line)}${dim(":")}${yellow(column)}`;
+export function createSourceLink(filePath, line, column, colors) {
+    return (
+        colors.blue(filePath) + 
+        colors.dim(":") + 
+        colors.yellow(String(line)) + 
+        colors.dim(":") + 
+        colors.yellow(String(column))
+    );
 }
 
 

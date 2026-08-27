@@ -54,7 +54,7 @@
                     </svg>
                 </button>
 
-                <button class="play">
+                <button data-action-play class="play">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
                             d="M6 19.5425V4.45749C6 4.04453 6.13827 3.69838 6.41481 3.41903C6.69136 3.13968 7.01399 3 7.38272 3C7.49794 3 7.61893 3.01822 7.74568 3.05466C7.87243 3.09109 7.99342 3.14575 8.10864 3.21862L19.3778 10.7611C19.5852 10.9069 19.7407 11.0891 19.8444 11.3077C19.9481 11.5263 20 11.7571 20 12C20 12.2429 19.9481 12.4737 19.8444 12.6923C19.7407 12.9109 19.5852 13.0931 19.3778 13.2389L8.10864 20.7814C7.99342 20.8542 7.87243 20.9089 7.74568 20.9453C7.61893 20.9818 7.49794 21 7.38272 21C7.01399 21 6.69136 20.8603 6.41481 20.581C6.13827 20.3016 6 19.9555 6 19.5425Z"
@@ -127,20 +127,10 @@
     <div class="right" data-right>
 
         <div class="screen">
-            <div class="display">
-                
-            </div>
+            <div data-screen-display class="display"></div>
 
             <div class="panes">
-                <button class="pane">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px"
-                        fill="#e3e3e3">
-                        <path
-                            d="M607.5-372.5Q660-425 660-500t-52.5-127.5Q555-680 480-680t-127.5 52.5Q300-575 300-500t52.5 127.5Q405-320 480-320t127.5-52.5Zm-204-51Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM235.5-272Q125-344 61-462q-5-9-7.5-18.5T51-500q0-10 2.5-19.5T61-538q64-118 174.5-190T480-800q134 0 244.5 72T899-538q5 9 7.5 18.5T909-500q0 10-2.5 19.5T899-462q-64 118-174.5 190T480-200q-134 0-244.5-72ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z" />
-                    </svg>
-                </button>
-
-                <button class="pane active">
+                <button data-pane-button="console" class="pane active">
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g clip-path="url(#clip0_138_15)">
                             <path d="M5 5L10 10L5 15M12 17H19" stroke="white" stroke-width="2" stroke-linecap="round"
@@ -154,7 +144,7 @@
                     </svg>
                 </button>
 
-                <button class="pane">
+                <button data-pane-button="tree" class="pane">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="23" height="23">
                         <path d="M10 9 L7.5 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
                         <path d="M14 9 L16.5 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
@@ -167,9 +157,13 @@
                     </svg>
                 </button>
 
-                <button class="pane">
-                    JS
+                <button data-pane-button="debugger" class="pane">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="21" height="22" viewBox="0 0 16 16">
+                        <path d="M0 0h16v16H0z" fill="none" />
+                        <path fill="currentColor" d="M4.72.22a.75.75 0 0 1 1.06 0l1 .999a3.5 3.5 0 0 1 2.441 0l.999-1a.748.748 0 0 1 1.265.332a.75.75 0 0 1-.205.729l-.775.776c.616.63.995 1.493.995 2.444v.327q0 .15-.025.292c.408.14.764.392 1.029.722l1.968-.787a.75.75 0 0 1 .556 1.392L13 7.258V9h2.25a.75.75 0 0 1 0 1.5H13v.5q-.002.615-.141 1.186l2.17.868a.75.75 0 0 1-.557 1.392l-2.184-.873A5 5 0 0 1 8 16a5 5 0 0 1-4.288-2.427l-2.183.873a.75.75 0 0 1-.558-1.392l2.17-.868A5 5 0 0 1 3 11v-.5H.75a.75.75 0 0 1 0-1.5H3V7.258L.971 6.446a.75.75 0 0 1 .558-1.392l1.967.787c.265-.33.62-.583 1.03-.722a2 2 0 0 1-.026-.292V4.5c0-.951.38-1.814.995-2.444L4.72 1.28a.75.75 0 0 1 0-1.06m.53 6.28a.75.75 0 0 0-.75.75V11a3.5 3.5 0 1 0 7 0V7.25a.75.75 0 0 0-.75-.75ZM6.173 5h3.654A.17.17 0 0 0 10 4.827V4.5a2 2 0 1 0-4 0v.327c0 .096.077.173.173.173" />
+                    </svg>
                 </button>
+
             </div>
         </div>
 
@@ -250,7 +244,7 @@
                         </ul>
                     </li>
 
-                    <li class="topic open" data-topic>
+                    <!-- <li class="topic open" data-topic>
                         <div class="topic-name" data-topic-name>Keybindings</div>
 
                         <ul class="sub-topics">
@@ -284,7 +278,7 @@
                                 </button>
                             </li>
                         </ul>
-                    </li>
+                    </li> -->
                 </ul>
 
                 <!-- Search results -->
@@ -424,8 +418,6 @@
             </div>
         </div>
     </div>
-
-
 
 
 </body>

@@ -145,16 +145,20 @@ body > .right {
         overflow: hidden;
 
         .display {
+            white-space: pre-wrap;
+            color: inherit;
+            font-family: "JetBrains Mono", monospace;
             flex-grow: 1;
             background-color: #17191a;
+            font-size: 15px;
         }
 
         .panes {
-            width: 45px;
+            min-width: 45px;
             background-color: #282a36;
             display: flex;
             flex-direction: column;
-            /* gap: 1px; */
+            gap: 5px;
 
             .pane {
                 width: 100%;
@@ -439,7 +443,26 @@ body > .right {
 
 
 
+/* Utility CSS classes for styling text */
+.console-red {
+    color: #ff5555;
+}
 
+.console-yellow {
+    color: #f1fa8c;
+}
+
+.console-blue {
+    color: #8be9fd;
+}
+
+.console-bold {
+    font-weight: bold;
+}
+
+.console-dim {
+    opacity: 0.5;
+}
 
 
 
@@ -833,7 +856,23 @@ body > .right {
 
 
 
+/*
+Source - https://stackoverflow.com/a/38994837
+Posted by Hristo Eftimov, modified by community. See post 'Timeline' for change history
+Retrieved 2026-08-27, License - CC BY-SA 4.0
+*/
 
+* {
+    -ms-overflow-style: none;
+    /* Internet Explorer 10+ */
+    scrollbar-width: none;
+    /* Firefox, Safari 18.2+, Chromium 121+ */
+}
+
+*::-webkit-scrollbar {
+    display: none;
+    /* Older Safari and Chromium */
+}
 
 
 

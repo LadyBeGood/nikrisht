@@ -72,7 +72,7 @@ write(mergeSort([10, -1, 2, 5, 0, 9]));
 const cache = {};
 
 func fibonacci(number) {
-    if (cache[number] != null) {
+    if (has(cache, number)) {
         return cache[number];
     }
 

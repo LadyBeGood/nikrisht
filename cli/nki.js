@@ -3,7 +3,7 @@
 // @ts-check
 
 import "../interpreter/types.js";
-import { runFile } from "./run.js";
+import { runFile } from "./runFile.js";
 
 
 export async function main() {
@@ -14,7 +14,7 @@ export async function main() {
         process.exit(1);
     }
 
-    await runFile(args[0]);
+    runFile(args[0]);
 }
 
 

@@ -10,11 +10,12 @@ import { is_Array, is_Boolean, is_Function, is_Null, is_Number, is_Object, is_St
  * 
  * @param {_Type} data 
  * @param {number} [indent=1] 
+ * @param {boolean} [quoteStrings=false] 
  * @returns {string}
  */
-function stringify(data, indent = 1) {
+export function stringify(data, indent = 1, quoteStrings = false) {
     if (is_String(data)) {
-        return data;
+        return quoteStrings ? `"${data}"` : data;
     } else if (is_Number(data) || is_Boolean(data) || is_Null(data)) {
         return String(data);
     } else if (is_Array(data)) {
@@ -29,11 +30,7 @@ function stringify(data, indent = 1) {
 
         for (let i = 0; i < data.length; i++) {
             result.push(1);
-            if (is_String(data[i])) {
-                result.push(`"${data[i]}"`);
-            } else {
-                result.push(stringify(data[i], indent + 1));
-            }
+            result.push(stringify(data[i], indent + 1, true));
             result.push(2);
             result.push(0);
         }
@@ -95,17 +92,9 @@ function stringify(data, indent = 1) {
 
         for (const [key, value] of data.entries()) {
             result.push(1);
-            if (is_String(key)) {
-                result.push(`"${key}"`);
-            } else {
-                result.push(stringify(key, indent + 1));
-            }
+            result.push(stringify(key, indent + 1, true));
             result.push(": ");
-            if (is_String(value)) {
-                result.push(`"${value}"`);
-            } else {
-                result.push(stringify(value, indent + 1));
-            }
+            result.push(stringify(value, indent + 1, true));
             result.push(2);
             result.push(0);
         }
