@@ -111,8 +111,8 @@ write(fibonacci(8));
 ### Playground
 You can try Nikrisht instantly in your browser without any installation or setup.
 
-<img src="./assets/playground-mobile.png" height="300px" /> 
-<img src="./assets/playground-desktop.png" width="594px" />
+<img src="./assets/playground-mobile.png" height="340px" /> <img src="./assets/playground-desktop.png" width="673px" />
+
 
 
 ### Installation
