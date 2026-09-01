@@ -1,5 +1,6 @@
 // @ts-check
 
+import "./types.js";
 import "../interpreter/types.js";
 
 const TAB_WIDTH = 4;
@@ -74,8 +75,8 @@ function toExpandedColumn(rawLine, rawColumn) {
  * @param {Diagnostic} diagnostic
  * @param {string} source Full original source text.
  * @param {string} filePath Path to display in the header line.
- * @param {Interpreter["host"]["colors"]} colors 
- * @param {Interpreter["host"]["escape"]} escape
+ * @param {Colors} colors 
+ * @param {function(string): string} escape
  * @returns {string}
  */
 export function formatDiagnostic(diagnostic, source, filePath, colors, escape) {
@@ -127,9 +128,10 @@ export function formatDiagnostic(diagnostic, source, filePath, colors, escape) {
  * @param {string} source
  * @param {string} filePath
  * @param {Interpreter["host"]} host
+ * @param {Colors} colors 
+ * @param {function(string): string} escape
  */
-export function report(diagnostics, source, filePath, host) {
-    const { logger, colors, escape } = host;
+export function report(diagnostics, source, filePath, host, colors, escape) {
 
     const sorted = [...diagnostics].sort((a, b) => {
         if (a.startLine !== b.startLine) return a.startLine - b.startLine;
@@ -137,8 +139,8 @@ export function report(diagnostics, source, filePath, host) {
     });
 
     for (const diagnostic of sorted) {
-        logger(formatDiagnostic(diagnostic, source, filePath, colors, escape));
-        logger("");
+        host.log(formatDiagnostic(diagnostic, source, filePath, colors, escape));
+        host.log("");
     }
 
     const errorCount = diagnostics.filter((d) => d.type === "error").length;
@@ -153,7 +155,7 @@ export function report(diagnostics, source, filePath, host) {
     if (warningCount > 0) {
         parts.push(colors.bold(colors.yellow(`${warningCount} warning${warningCount === 1 ? "" : "s"}`)));
     }
-    logger(parts.join(", "));
+    host.log(parts.join(", "));
 }
 
 
@@ -168,7 +170,7 @@ export function report(diagnostics, source, filePath, host) {
  * @param {string} filePath Absolute or relative file path
  * @param {number} line 1-based line number
  * @param {number} column 1-based column number
- * @param {Interpreter["host"]["colors"]} colors 
+ * @param {Colors} colors 
  * @returns {string}
  */
 export function createSourceLink(filePath, line, column, colors) {

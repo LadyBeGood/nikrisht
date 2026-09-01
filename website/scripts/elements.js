@@ -50,15 +50,14 @@ export const elements = {
     screenDisplay: $("[data-screen-display]"),
     paneButtonList: $$("[data-pane-button]"),
     paneContentList: $$("[data-pane-content]"),
-    loggerTarget: $("[data-logger-target]"),
+    logTarget: $("[data-log-target]"),
     errorCount: $("[data-error-count]"),
     warningCount: $("[data-warning-count]"),
     consoleError: $("[data-console-error]"),
     consoleWarning: $("[data-console-warning]"),
     consoleSuccess: $("[data-console-success]"),
-    loggerClearButton: $("[data-logger-clear-button]"),
     initialScreenList: $$("[data-initial-screen]"),
-    
+
 
     actionPlay: $("[data-action-play]"),
 

@@ -1,7 +1,7 @@
 import { examples } from "./examples.js"
 import { elements } from "./elements.js"
-import { colors, logger, escape } from "./runner.js"
-import { run } from "../../cli/run.js";
+import { colors, log, escape } from "./host.js"
+import { run } from "../../runner/run.js";
 
 function debug(x) {
     console.log(x);
@@ -594,10 +594,10 @@ export async function setupDocumentation() {
 function setupActionButtons(editor) {
     elements.actionPlay.addEventListener("click", () => {
         const source = editor.getValue();
-        elements.loggerTarget.innerHTML = "";
+        elements.logTarget.innerHTML = "";
         const interpreter = run(source, "Playground", {
             colors,
-            logger,
+            log,
             escape
         });
 
@@ -622,7 +622,7 @@ function setupActionButtons(editor) {
                 elements.consoleError.style.display = "flex";
                 elements.errorCount.textContent = numberOfErrors + " " + (numberOfErrors === 1 ? "error" : "errors");
             }
-            
+
             if (numberOfWarnings > 0) {
                 elements.consoleWarning.style.display = "flex";
                 elements.warningCount.textContent = numberOfWarnings + " " + (numberOfWarnings === 1 ? "warning" : "warnings");

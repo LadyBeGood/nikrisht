@@ -9,7 +9,7 @@ import { keywords } from "../interpreter/core/keywords.js";
 
 
 function lex(source) {
-    const interpreter = createInterpreter(source, "node");
+    const interpreter = createInterpreter(source);
     const lexer = createLexer(interpreter);
     lexSource(lexer);
 

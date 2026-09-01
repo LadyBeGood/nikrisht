@@ -1,7 +1,7 @@
 //@ts-check
 
 import * as vscode from 'vscode';
-import { run } from "../../cli/run.js"
+import { run } from "../../runner/run.js"
 
 /**
  * @param {vscode.ExtensionContext} context 
@@ -26,8 +26,12 @@ export function activate(context) {
             outputChannel.clear();
             outputChannel.show(true); // true = preserve focus on editor
 
-            const interpreter = run(source, path, {
-                logger: (message) => outputChannel.appendLine(message),
+            const interpreter = run({
+                source, 
+                path, 
+                host: {
+                    log: (message) => outputChannel.appendLine(message),
+                }
             });
         })
     );

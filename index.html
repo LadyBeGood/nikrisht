@@ -86,7 +86,7 @@
                 <button data-shortcut-button-undo>
                     <img style="transform: rotateZ(-90deg) rotateY(180deg);" src="./website/assets/undo-2.svg" alt="undo" height="20px" width="20px">
                 </button>
-                
+
                 <button data-shortcut-button-redo>
                     <img style="transform: rotateZ(90deg);" src="./website/assets/undo-2.svg" alt="undo" height="20px" width="20px">
                     <!-- <img src="./website/assets/redo.svg" alt="redo" height="20px" width="20px"> -->
@@ -129,38 +129,37 @@
                 <div data-pane-content="console" class="console">
                     <div data-initial-screen class="initial-screen">
                         <span>
-                            Press 
+                            Press
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6 19.5425V4.45749C6 4.04453 6.13827 3.69838 6.41481 3.41903C6.69136 3.13968 7.01399 3 7.38272 3C7.49794 3 7.61893 3.01822 7.74568 3.05466C7.87243 3.09109 7.99342 3.14575 8.10864 3.21862L19.3778 10.7611C19.5852 10.9069 19.7407 11.0891 19.8444 11.3077C19.9481 11.5263 20 11.7571 20 12C20 12.2429 19.9481 12.4737 19.8444 12.6923C19.7407 12.9109 19.5852 13.0931 19.3778 13.2389L8.10864 20.7814C7.99342 20.8542 7.87243 20.9089 7.74568 20.9453C7.61893 20.9818 7.49794 21 7.38272 21C7.01399 21 6.69136 20.8603 6.41481 20.581C6.13827 20.3016 6 19.9555 6 19.5425Z" fill="currentColor" />
                             </svg>
                             to run the program
                         </span>
                     </div>
-                    
-                    <div data-logger-target class="logs"></div>
+
+                    <div data-log-target class="logs"></div>
 
                     <div class="bottom-bar">
                         <div data-console-error class="error" style="display: none;">
                             <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor">
                                 <path d="M508.5-291.5Q520-303 520-320t-11.5-28.5Q497-360 480-360t-28.5 11.5Q440-337 440-320t11.5 28.5Q463-280 480-280t28.5-11.5ZM440-440h80v-240h-80v240Zm40 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
                             </svg>
-                            <div data-error-count class="error-count">3 errors</div> 
+                            <div data-error-count class="error-count">3 errors</div>
                         </div>
                         <div data-console-warning class="warning" style="display: none;">
                             <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor">
                                 <path d="m40-120 440-760 440 760H40Zm138-80h604L480-720 178-200Zm330.5-51.5Q520-263 520-280t-11.5-28.5Q497-320 480-320t-28.5 11.5Q440-297 440-280t11.5 28.5Q463-240 480-240t28.5-11.5ZM440-360h80v-200h-80v200Zm40-100Z" />
                             </svg>
-                            <div data-warning-count class="warning-count">1 warning</div> 
+                            <div data-warning-count class="warning-count">1 warning</div>
                         </div>
                         <div data-console-success class="success" style="display: none;">
                             <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="currentColor">
                                 <path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
                             </svg>
-                            <div>Success</div> 
+                            <div>Success</div>
                         </div>
-                        
-                        
-                        <!-- <button data-logger-clear-button class="clear">Clear</button> -->
+
+
                     </div>
                 </div>
                 <div data-pane-content="tree" class="tree" style="display: none;">
@@ -168,7 +167,7 @@
 
                     <div data-initial-screen class="initial-screen">
                         <span>
-                            Press 
+                            Press
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6 19.5425V4.45749C6 4.04453 6.13827 3.69838 6.41481 3.41903C6.69136 3.13968 7.01399 3 7.38272 3C7.49794 3 7.61893 3.01822 7.74568 3.05466C7.87243 3.09109 7.99342 3.14575 8.10864 3.21862L19.3778 10.7611C19.5852 10.9069 19.7407 11.0891 19.8444 11.3077C19.9481 11.5263 20 11.7571 20 12C20 12.2429 19.9481 12.4737 19.8444 12.6923C19.7407 12.9109 19.5852 13.0931 19.3778 13.2389L8.10864 20.7814C7.99342 20.8542 7.87243 20.9089 7.74568 20.9453C7.61893 20.9818 7.49794 21 7.38272 21C7.01399 21 6.69136 20.8603 6.41481 20.581C6.13827 20.3016 6 19.9555 6 19.5425Z" fill="currentColor" />
                             </svg>
@@ -246,7 +245,7 @@
                 <ul class="topics" data-topics>
                     <li class="topic open" data-topic>
                         <div class="topic-name" data-topic-name>Language</div>
-                        
+
                         <ul class="sub-topics">
                             <li>
                                 <button class="sub-topic active" data-sub-topic data-file-name="reference/comments">

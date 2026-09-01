@@ -146,7 +146,7 @@ export const natives = {
     "write": {
         arity: 1,
         call(args, _, executor) {
-            executor.interpreter.host.logger(stringify(args[0]));
+            executor.interpreter.host.log(stringify(args[0]));
             return null;
         }
     },

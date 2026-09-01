@@ -15,12 +15,12 @@ export const colors = {
 }
 
 
-export function logger(message) {
+export function log(message) {
     if (message.match(/\<span class=\"console\-(red|yellow)\"\>\d+ (errors?|warnings?)<\/span\>\<\/span>/)) {
         console.log(message)
         return;
     }
-    elements.loggerTarget.innerHTML += message + "\n";
+    elements.logTarget.innerHTML += message + "\n";
 }
 
 

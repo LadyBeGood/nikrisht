@@ -8,7 +8,7 @@ import { createParser, parse as parseTokens } from "../interpreter/phases/parser
 
 
 function parse(source) {
-    const interpreter = createInterpreter(source, "node");
+    const interpreter = createInterpreter(source);
     const lexer = createLexer(interpreter);
     lex(lexer);
 
@@ -289,14 +289,15 @@ describe("Expressions", () => {
 
             expect(statements[0].expression).toMatchObject({
                 type: "RangeExpression",
-                left: {
+                starting: {
                     type: "LiteralExpression",
                     value: 1,
                 },
-                right: {
+                ending: {
                     type: "LiteralExpression",
                     value: 10,
                 },
+                gap: undefined,
                 operator: {
                     type: "DotDot",
                 },
@@ -308,14 +309,15 @@ describe("Expressions", () => {
 
             expect(statements[0].expression).toMatchObject({
                 type: "RangeExpression",
-                left: {
+                starting: {
                     type: "LiteralExpression",
                     value: 1,
                 },
-                right: {
+                ending: {
                     type: "LiteralExpression",
                     value: 10,
                 },
+                gap: undefined,
                 operator: {
                     type: "DotDotLessThan",
                 },
@@ -327,14 +329,15 @@ describe("Expressions", () => {
 
             expect(statements[0].expression).toMatchObject({
                 type: "RangeExpression",
-                left: {
+                starting: {
                     type: "LiteralExpression",
                     value: 10,
                 },
-                right: {
+                ending: {
                     type: "LiteralExpression",
                     value: 1,
                 },
+                gap: undefined,
                 operator: {
                     type: "DotDotMoreThan",
                 },
@@ -344,9 +347,9 @@ describe("Expressions", () => {
     });
 
 
-    describe("binary expressions", () => {
+    describe("Binary", () => {
 
-        test("multiplication", () => {
+        test("Multiplication", () => {
             const { statements } = parse("a * b;");
 
             expect(statements[0].expression).toMatchObject({
@@ -365,90 +368,213 @@ describe("Expressions", () => {
             });
         });
 
-        test("division", () => {
+        test("Division", () => {
             const { statements } = parse("a / b;");
 
-            expect(statements[0].expression.operator.type)
-                .toBe("Slash");
+            expect(statements[0].expression).toMatchObject({
+                type: "BinaryExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
+                operator: {
+                    type: "Slash",
+                },
+            });
         });
 
-        test("addition", () => {
+        test("Addition", () => {
             const { statements } = parse("a + b;");
 
-            expect(statements[0].expression.operator.type)
-                .toBe("Plus");
+            expect(statements[0].expression).toMatchObject({
+                type: "BinaryExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
+                operator: {
+                    type: "Plus",
+                },
+            });
         });
 
-        test("subtraction", () => {
+        test("Subtraction", () => {
             const { statements } = parse("a - b;");
 
-            expect(statements[0].expression.operator.type)
-                .toBe("Minus");
+            expect(statements[0].expression).toMatchObject({
+                type: "BinaryExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
+                operator: {
+                    type: "Minus",
+                },
+            });
         });
 
-        test("greater than", () => {
+        test("More than", () => {
             const { statements } = parse("a > b;");
 
-            expect(statements[0].expression.operator.type)
-                .toBe("MoreThan");
+            expect(statements[0].expression).toMatchObject({
+                type: "BinaryExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
+                operator: {
+                    type: "MoreThan",
+                },
+            });
         });
 
-        test("greater than or equal", () => {
+        test("More than equal", () => {
             const { statements } = parse("a >= b;");
 
-            expect(statements[0].expression.operator.type)
-                .toBe("MoreThanEqual");
+            expect(statements[0].expression).toMatchObject({
+                type: "BinaryExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
+                operator: {
+                    type: "MoreThanEqual",
+                },
+            });
         });
 
-        test("less than", () => {
+        test("Less than", () => {
             const { statements } = parse("a < b;");
 
-            expect(statements[0].expression.operator.type)
-                .toBe("LessThan");
+            expect(statements[0].expression).toMatchObject({
+                type: "BinaryExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
+                operator: {
+                    type: "LessThan",
+                },
+            });
         });
 
-        test("less than or equal", () => {
+        test("Less than equal", () => {
             const { statements } = parse("a <= b;");
 
-            expect(statements[0].expression.operator.type)
-                .toBe("LessThanEqual");
+            expect(statements[0].expression).toMatchObject({
+                type: "BinaryExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
+                operator: {
+                    type: "LessThanEqual",
+                },
+            });
         });
 
-        test("equality", () => {
+
+        test("Equal", () => {
             const { statements } = parse("a == b;");
-
-            expect(statements[0].expression.operator.type)
-                .toBe("EqualEqual");
+            expect(statements[0].expression).toMatchObject({
+                type: "BinaryExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
+                operator: {
+                    type: "EqualEqual",
+                },
+            });
         });
 
-        test("inequality", () => {
+        test("Not equal", () => {
             const { statements } = parse("a != b;");
-
-            expect(statements[0].expression.operator.type)
-                .toBe("ExclamationMarkEqual");
+            expect(statements[0].expression).toMatchObject({
+                type: "BinaryExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
+                operator: {
+                    type: "ExclamationMarkEqual",
+                },
+            });
         });
 
     });
 
 
-    describe("logical expressions", () => {
+    describe("Logical", () => {
 
-        test("logical and", () => {
-            const { statements } = parse("a and b;");
+        test("And", () => {
+            const { statements } = parse("a & b;");
 
             expect(statements[0].expression).toMatchObject({
                 type: "LogicalExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
                 operator: {
                     type: "And",
                 },
             });
         });
 
-        test("logical or", () => {
+        test("Or", () => {
             const { statements } = parse("a | b;");
 
             expect(statements[0].expression).toMatchObject({
                 type: "LogicalExpression",
+                left: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                right: {
+                    type: "IdentifierExpression",
+                    lexeme: "b",
+                },
                 operator: {
                     type: "Bar",
                 },
@@ -458,9 +584,9 @@ describe("Expressions", () => {
     });
 
 
-    describe("expression precedence", () => {
+    describe("Precedence", () => {
 
-        test("multiplication binds tighter than addition", () => {
+        test("Multiplication binds tighter than addition", () => {
             const { statements } = parse("a + b * c;");
 
             const expression = statements[0].expression;
@@ -469,7 +595,7 @@ describe("Expressions", () => {
             expect(expression.right.operator.type).toBe("Asterisk");
         });
 
-        test("addition binds tighter than comparison", () => {
+        test("Addition binds tighter than comparison", () => {
             const { statements } = parse("a + b < c;");
 
             const expression = statements[0].expression;
@@ -478,17 +604,16 @@ describe("Expressions", () => {
             expect(expression.left.operator.type).toBe("Plus");
         });
 
-        test("comparison binds tighter than equality", () => {
+        test("Comparison binds tighter than equality", () => {
             const { statements } = parse("a < b == c;");
 
             const expression = statements[0].expression;
-
             expect(expression.operator.type).toBe("EqualEqual");
             expect(expression.left.operator.type).toBe("LessThan");
         });
 
-        test("equality binds tighter than logical and", () => {
-            const { statements } = parse("a == b and c;");
+        test("Equality binds tighter than logical and", () => {
+            const { statements } = parse("a == b & c;");
 
             const expression = statements[0].expression;
 
@@ -496,8 +621,8 @@ describe("Expressions", () => {
             expect(expression.left.operator.type).toBe("EqualEqual");
         });
 
-        test("logical and binds tighter than logical or", () => {
-            const { statements } = parse("a and b | c;");
+        test("Logical and binds tighter than logical or", () => {
+            const { statements } = parse("a & b | c;");
 
             const expression = statements[0].expression;
 
@@ -506,7 +631,7 @@ describe("Expressions", () => {
             expect(expression.left.operator.type).toBe("And");
         });
 
-        test("grouping overrides precedence", () => {
+        test("Grouping overrides precedence", () => {
             const { statements } = parse("(a + b) * c;");
 
             const expression = statements[0].expression;
@@ -519,9 +644,9 @@ describe("Expressions", () => {
     });
 
 
-    describe("assignment expressions", () => {
+    describe("Assignment", () => {
 
-        test("assignment", () => {
+        test("Identifier", () => {
             const { statements } = parse("x = 10;");
 
             expect(statements[0].expression).toMatchObject({
@@ -537,7 +662,7 @@ describe("Expressions", () => {
             });
         });
 
-        test("assignment is right associative", () => {
+        test("Right associativity", () => {
             const { statements } = parse("a = b = c;");
 
             const expression = statements[0].expression;
@@ -565,52 +690,52 @@ describe("Expressions", () => {
     });
 
 
-    describe("member expressions", () => {
+    describe("Member", () => {
 
-        test("dot access", () => {
-            const { statements } = parse("foo.bar;");
+        test("Dot", () => {
+            const { statements } = parse("a.b;");
 
             expect(statements[0].expression).toMatchObject({
                 type: "MemberExpression",
                 object: {
                     type: "IdentifierExpression",
-                    lexeme: "foo",
+                    lexeme: "a",
                 },
                 property: {
                     type: "LiteralExpression",
-                    value: "bar",
+                    value: "b",
                 },
             });
         });
 
-        test("bracket access", () => {
-            const { statements } = parse("foo[bar];");
+        test("Square bracket", () => {
+            const { statements } = parse("a[b];");
 
             expect(statements[0].expression).toMatchObject({
                 type: "MemberExpression",
                 object: {
                     type: "IdentifierExpression",
-                    lexeme: "foo",
+                    lexeme: "a",
                 },
                 property: {
                     type: "IdentifierExpression",
-                    lexeme: "bar",
+                    lexeme: "b",
                 },
             });
         });
 
-        test("chained member access", () => {
-            const { statements } = parse("foo.bar.baz;");
+        test("Chained", () => {
+            const { statements } = parse("a.b.c;");
 
             expect(statements[0].expression).toMatchObject({
                 type: "MemberExpression",
                 property: {
-                    value: "baz",
+                    value: "c",
                 },
                 object: {
                     type: "MemberExpression",
                     property: {
-                        value: "bar",
+                        value: "b",
                     },
                 },
             });
@@ -619,26 +744,30 @@ describe("Expressions", () => {
     });
 
 
-    describe("call expressions", () => {
+    describe("Call", () => {
 
-        test("call without arguments", () => {
-            const { statements } = parse("foo();");
+        test("No arguments", () => {
+            const { statements } = parse("a();");
 
             expect(statements[0].expression).toMatchObject({
                 type: "CallExpression",
                 callee: {
                     type: "IdentifierExpression",
-                    lexeme: "foo",
+                    lexeme: "a",
                 },
                 arguments: [],
             });
         });
 
         test("call with arguments", () => {
-            const { statements } = parse("foo(1, bar, 2 + 3);");
+            const { statements } = parse("a(1, b, 2 + 3);");
 
             expect(statements[0].expression).toMatchObject({
                 type: "CallExpression",
+                callee: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
                 arguments: [
                     {
                         type: "LiteralExpression",
@@ -646,7 +775,7 @@ describe("Expressions", () => {
                     },
                     {
                         type: "IdentifierExpression",
-                        lexeme: "bar",
+                        lexeme: "b",
                     },
                     {
                         type: "BinaryExpression",
@@ -655,8 +784,8 @@ describe("Expressions", () => {
             });
         });
 
-        test("chained calls", () => {
-            const { statements } = parse("foo()();");
+        test("Curried", () => {
+            const { statements } = parse("a()();");
 
             expect(statements[0].expression).toMatchObject({
                 type: "CallExpression",
@@ -666,7 +795,7 @@ describe("Expressions", () => {
             });
         });
 
-        test("member call", () => {
+        test("Member call", () => {
             const { statements } = parse("foo.bar(1);");
 
             expect(statements[0].expression).toMatchObject({
@@ -678,14 +807,87 @@ describe("Expressions", () => {
         });
 
     });
+
+
+
+    describe("Functions", () => {
+
+        test("Anonymous", () => {
+            const { statements } = parse(
+                "(func(x) x + 1);"
+            );
+
+            expect(statements[0]).toMatchObject({
+                type: "ExpressionStatement",
+                expression: {
+                    type: "GroupingExpression",
+                    expression: {
+                        type: "FunctionExpression",
+                        name: undefined,
+                        parameters: [
+                            {
+                                type: "IdentifierExpression",
+                                lexeme: "x",
+                            },
+                        ],
+                        body: {
+                            type: "ReturnStatement",
+                        },
+                    }
+                },
+            });
+        });
+
+        test("Named", () => {
+            const { statements } = parse(
+                "(func a() 1);"
+            );
+
+            expect(statements[0].expression).toMatchObject({
+                type: "GroupingExpression",
+                expression: {
+                    type: "FunctionExpression",
+                    name: {
+                        type: "IdentifierExpression",
+                        lexeme: "a",
+                    },
+                    body: {
+                        type: "ReturnStatement",
+                    },
+                }
+            });
+        });
+
+        test("Block body", () => {
+            const { statements } = parse(`
+            (func(x) {
+                return x;
+            });
+        `);
+
+            expect(statements[0].expression).toMatchObject({
+                type: "GroupingExpression",
+                expression: {
+                    type: "FunctionExpression",
+                    body: {
+                        type: "BlockStatement",
+                        body: [
+                            {
+                                type: "ReturnStatement",
+                            },
+                        ],
+                    },
+                }
+            });
+        });
+
+    });
 });
 
 
+describe("Statement", () => {
 
-
-describe("expression statements", () => {
-
-    test("expression statement", () => {
+    test("Expression statement", () => {
         const { statements } = parse("42;");
 
         expect(statements[0]).toMatchObject({
@@ -697,373 +899,212 @@ describe("expression statements", () => {
         });
     });
 
-});
 
 
-describe("if statements", () => {
+    describe("Conditionals", () => {
 
-    test("if statement", () => {
-        const { statements } = parse(
-            "if (condition) return 1;"
-        );
+        test("If", () => {
+            const { statements } = parse(
+                "if (condition) return 1;"
+            );
 
-        expect(statements[0]).toMatchObject({
-            type: "IfStatement",
-            condition: {
-                type: "IdentifierExpression",
-                lexeme: "condition",
-            },
-            thenBranch: {
+            expect(statements[0]).toMatchObject({
+                type: "IfStatement",
+                condition: {
+                    type: "IdentifierExpression",
+                    lexeme: "condition",
+                },
+                thenBranch: {
+                    type: "ReturnStatement",
+                    expression: {
+                        value: 1,
+                    },
+                },
+                elseBranch: undefined,
+            });
+        });
+
+        test("If else", () => {
+            const { statements } = parse(
+                "if (condition) return 1; else return 2;"
+            );
+
+            expect(statements[0]).toMatchObject({
+                type: "IfStatement",
+                thenBranch: {
+                    type: "ReturnStatement",
+                    expression: {
+                        value: 1,
+                    },
+                },
+                elseBranch: {
+                    type: "ReturnStatement",
+                    expression: {
+                        value: 2,
+                    },
+                },
+            });
+        });
+
+    });
+
+
+    describe("Loops", () => {
+
+        test("No header", () => {
+            const { statements } = parse(
+                "loop return 1;"
+            );
+
+            expect(statements[0]).toMatchObject({
+                type: "LoopStatement",
+                iterable: undefined,
+                binding: undefined,
+                body: {
+                    type: "ReturnStatement",
+                },
+            });
+        });
+
+        test("Iterable", () => {
+            const { statements } = parse(
+                "loop (items) return items;"
+            );
+
+            expect(statements[0]).toMatchObject({
+                type: "LoopStatement",
+                iterable: {
+                    type: "IdentifierExpression",
+                    lexeme: "items",
+                },
+                binding: undefined,
+            });
+        });
+
+        test("Value binding", () => {
+            const { statements } = parse(
+                "loop (items with value) return value;"
+            );
+
+            expect(statements[0]).toMatchObject({
+                type: "LoopStatement",
+                binding: {
+                    index: undefined,
+                    value: {
+                        type: "IdentifierExpression",
+                        lexeme: "value",
+                    },
+                },
+            });
+        });
+
+        test("Index and value binding", () => {
+            const { statements } = parse(
+                "loop (items with [index, value]) return value;"
+            );
+
+            expect(statements[0]).toMatchObject({
+                type: "LoopStatement",
+                binding: {
+                    index: {
+                        type: "IdentifierExpression",
+                        lexeme: "index",
+                    },
+                    value: {
+                        type: "IdentifierExpression",
+                        lexeme: "value",
+                    },
+                },
+            });
+        });
+
+        test("Index binding", () => {
+            const { statements } = parse(
+                "loop (items with [index]) return index;"
+            );
+
+            expect(statements[0]).toMatchObject({
+                type: "LoopStatement",
+                binding: {
+                    index: {
+                        type: "IdentifierExpression",
+                        lexeme: "index",
+                    },
+                    value: undefined,
+                },
+            });
+        });
+
+    });
+
+
+    describe("Exit and skip", () => {
+
+        test("exit", () => {
+            const { statements } = parse("exit;");
+
+            expect(statements[0]).toMatchObject({
+                type: "ExitStatement",
+            });
+        });
+
+        test("skip", () => {
+            const { statements } = parse("skip;");
+
+            expect(statements[0]).toMatchObject({
+                type: "SkipStatement",
+            });
+        });
+
+    });
+
+
+    describe("Return", () => {
+
+        test("Without expression", () => {
+            const { statements } = parse("return;");
+
+            expect(statements[0]).toMatchObject({
+                type: "ReturnStatement",
+                expression: undefined,
+            });
+        });
+
+        test("With expression", () => {
+            const { statements } = parse("return value;");
+
+            expect(statements[0]).toMatchObject({
                 type: "ReturnStatement",
                 expression: {
-                    value: 1,
-                },
-            },
-            elseBranch: undefined,
-        });
-    });
-
-    test("if else statement", () => {
-        const { statements } = parse(
-            "if (condition) return 1; else return 2;"
-        );
-
-        expect(statements[0]).toMatchObject({
-            type: "IfStatement",
-            thenBranch: {
-                type: "ReturnStatement",
-                expression: {
-                    value: 1,
-                },
-            },
-            elseBranch: {
-                type: "ReturnStatement",
-                expression: {
-                    value: 2,
-                },
-            },
-        });
-    });
-
-});
-
-
-describe("loop statements", () => {
-
-    test("loop without header", () => {
-        const { statements } = parse(
-            "loop return 1;"
-        );
-
-        expect(statements[0]).toMatchObject({
-            type: "LoopStatement",
-            iterable: undefined,
-            binding: undefined,
-            body: {
-                type: "ReturnStatement",
-            },
-        });
-    });
-
-    test("loop with iterable", () => {
-        const { statements } = parse(
-            "loop (items) return items;"
-        );
-
-        expect(statements[0]).toMatchObject({
-            type: "LoopStatement",
-            iterable: {
-                type: "IdentifierExpression",
-                lexeme: "items",
-            },
-            binding: undefined,
-        });
-    });
-
-    test("loop with value binding", () => {
-        const { statements } = parse(
-            "loop (items with value) return value;"
-        );
-
-        expect(statements[0]).toMatchObject({
-            type: "LoopStatement",
-            binding: {
-                index: undefined,
-                value: {
                     type: "IdentifierExpression",
                     lexeme: "value",
                 },
-            },
+            });
         });
+
     });
 
-    test("loop with index and value binding", () => {
-        const { statements } = parse(
-            "loop (items with [index, value]) return value;"
-        );
 
-        expect(statements[0]).toMatchObject({
-            type: "LoopStatement",
-            binding: {
-                index: {
-                    type: "IdentifierExpression",
-                    lexeme: "index",
-                },
-                value: {
-                    type: "IdentifierExpression",
-                    lexeme: "value",
-                },
-            },
+    describe("Block statements", () => {
+
+        test("empty block", () => {
+            const { statements } = parse("{}");
+
+            expect(statements[0]).toMatchObject({
+                type: "BlockStatement",
+                body: [],
+            });
         });
-    });
 
-    test("loop with index-only binding", () => {
-        const { statements } = parse(
-            "loop (items with [index]) return index;"
-        );
-
-        expect(statements[0]).toMatchObject({
-            type: "LoopStatement",
-            binding: {
-                index: {
-                    type: "IdentifierExpression",
-                    lexeme: "index",
-                },
-                value: undefined,
-            },
-        });
-    });
-
-});
-
-
-describe("exit and skip statements", () => {
-
-    test("exit", () => {
-        const { statements } = parse("exit;");
-
-        expect(statements[0]).toMatchObject({
-            type: "ExitStatement",
-        });
-    });
-
-    test("skip", () => {
-        const { statements } = parse("skip;");
-
-        expect(statements[0]).toMatchObject({
-            type: "SkipStatement",
-        });
-    });
-
-});
-
-
-describe("return statements", () => {
-
-    test("return without expression", () => {
-        const { statements } = parse("return;");
-
-        expect(statements[0]).toMatchObject({
-            type: "ReturnStatement",
-            expression: undefined,
-        });
-    });
-
-    test("return with expression", () => {
-        const { statements } = parse("return value;");
-
-        expect(statements[0]).toMatchObject({
-            type: "ReturnStatement",
-            expression: {
-                type: "IdentifierExpression",
-                lexeme: "value",
-            },
-        });
-    });
-
-});
-
-
-describe("block statements", () => {
-
-    test("empty block", () => {
-        const { statements } = parse("{}");
-
-        expect(statements[0]).toMatchObject({
-            type: "BlockStatement",
-            body: [],
-        });
-    });
-
-    test("block containing statements", () => {
-        const { statements } = parse(`
+        test("block containing statements", () => {
+            const { statements } = parse(`
             {
                 var x = 1;
                 return x;
             }
         `);
 
-        expect(statements[0]).toMatchObject({
-            type: "BlockStatement",
-            body: [
-                {
-                    type: "VariableDeclaration",
-                },
-                {
-                    type: "ReturnStatement",
-                },
-            ],
-        });
-    });
-
-    test("nested blocks", () => {
-        const { statements } = parse(`
-            {
-                {
-                    return 1;
-                }
-            }
-        `);
-
-        expect(statements[0]).toMatchObject({
-            type: "BlockStatement",
-            body: [
-                {
-                    type: "BlockStatement",
-                    body: [
-                        {
-                            type: "ReturnStatement",
-                        },
-                    ],
-                },
-            ],
-        });
-    });
-
-});
-
-
-/*=============================*/
-/* Declarations                */
-/*=============================*/
-
-describe("variable declarations", () => {
-
-    test("uninitialized variable", () => {
-        const { statements } = parse("var x;");
-
-        expect(statements[0]).toMatchObject({
-            type: "VariableDeclaration",
-            name: {
-                type: "IdentifierExpression",
-                lexeme: "x",
-            },
-            initialiser: undefined,
-        });
-    });
-
-    test("initialized variable", () => {
-        const { statements } = parse("var x = 42;");
-
-        expect(statements[0]).toMatchObject({
-            type: "VariableDeclaration",
-            name: {
-                type: "IdentifierExpression",
-                lexeme: "x",
-            },
-            initialiser: {
-                type: "LiteralExpression",
-                value: 42,
-            },
-        });
-    });
-
-});
-
-
-describe("constant declarations", () => {
-
-    test("constant", () => {
-        const { statements } = parse("const x = 42;");
-
-        expect(statements[0]).toMatchObject({
-            type: "ConstantDeclaration",
-            name: {
-                type: "IdentifierExpression",
-                lexeme: "x",
-            },
-            initialiser: {
-                type: "LiteralExpression",
-                value: 42,
-            },
-        });
-    });
-
-});
-
-
-describe("function declarations", () => {
-
-    test("function without parameters", () => {
-        const { statements } = parse(
-            "func foo() return 42;"
-        );
-
-        expect(statements[0]).toMatchObject({
-            type: "FunctionDeclaration",
-            name: {
-                type: "IdentifierExpression",
-                lexeme: "foo",
-            },
-            parameters: [],
-            body: {
-                type: "ReturnStatement",
-                expression: {
-                    type: "LiteralExpression",
-                    value: 42,
-                },
-            },
-        });
-    });
-
-    test("function parameters", () => {
-        const { statements } = parse(
-            "func foo(a, b, c) return a;"
-        );
-
-        expect(statements[0]).toMatchObject({
-            type: "FunctionDeclaration",
-            parameters: [
-                {
-                    type: "IdentifierExpression",
-                    lexeme: "a",
-                },
-                {
-                    type: "IdentifierExpression",
-                    lexeme: "b",
-                },
-                {
-                    type: "IdentifierExpression",
-                    lexeme: "c",
-                },
-            ],
-        });
-    });
-
-    test("function block body", () => {
-        const { statements } = parse(`
-            func foo(a) {
-                var x = a;
-                return x;
-            }
-        `);
-
-        expect(statements[0]).toMatchObject({
-            type: "FunctionDeclaration",
-            name: {
-                lexeme: "foo",
-            },
-            body: {
+            expect(statements[0]).toMatchObject({
                 type: "BlockStatement",
                 body: [
                     {
@@ -1073,130 +1114,171 @@ describe("function declarations", () => {
                         type: "ReturnStatement",
                     },
                 ],
+            });
+        });
+
+        test("Nested blocks", () => {
+            const { statements } = parse(`
+            {
+                {
+                    return 1;
+                }
+            }
+        `);
+
+            expect(statements[0]).toMatchObject({
+                type: "BlockStatement",
+                body: [
+                    {
+                        type: "BlockStatement",
+                        body: [
+                            {
+                                type: "ReturnStatement",
+                            },
+                        ],
+                    },
+                ],
+            });
+        });
+
+    });
+
+
+    /*=============================*/
+    /* Declarations                */
+    /*=============================*/
+
+    describe("Variable declarations", () => {
+
+        test("Uninitialized variable", () => {
+            const { statements } = parse("var x;");
+
+            expect(statements[0]).toMatchObject({
+                type: "VariableDeclaration",
+                name: {
+                    type: "IdentifierExpression",
+                    lexeme: "x",
+                },
+                initialiser: undefined,
+            });
+        });
+
+        test("Initialized variable", () => {
+            const { statements } = parse("var x = 42;");
+
+            expect(statements[0]).toMatchObject({
+                type: "VariableDeclaration",
+                name: {
+                    type: "IdentifierExpression",
+                    lexeme: "x",
+                },
+                initialiser: {
+                    type: "LiteralExpression",
+                    value: 42,
+                },
+            });
+        });
+
+    });
+
+
+    test("Constant declarations", () => {
+        const { statements } = parse("const a = 42;");
+
+        expect(statements[0]).toMatchObject({
+            type: "ConstantDeclaration",
+            name: {
+                type: "IdentifierExpression",
+                lexeme: "a",
+            },
+            initialiser: {
+                type: "LiteralExpression",
+                value: 42,
             },
         });
     });
 
-});
 
+    describe("Function declarations", () => {
 
-describe("function expressions", () => {
+        test("Without parameters, without block", () => {
+            const { statements } = parse("func a() 42;");
 
-    test("anonymous function", () => {
-        const { statements } = parse(
-            "func(x) x + 1;"
-        );
+            expect(statements[0]).toMatchObject({
+                type: "FunctionDeclaration",
+                name: {
+                    type: "IdentifierExpression",
+                    lexeme: "a",
+                },
+                parameters: [],
+                body: {
+                    type: "ReturnStatement",
+                    expression: {
+                        type: "LiteralExpression",
+                        value: 42,
+                    },
+                },
+            });
+        });
 
-        expect(statements[0]).toMatchObject({
-            type: "ExpressionStatement",
-            expression: {
-                type: "FunctionExpression",
-                name: undefined,
+        test("With parameters, without block", () => {
+            const { statements } = parse(
+                "func foo(a, b, c) 42;"
+            );
+
+            expect(statements[0]).toMatchObject({
+                type: "FunctionDeclaration",
                 parameters: [
                     {
                         type: "IdentifierExpression",
-                        lexeme: "x",
+                        lexeme: "a",
+                    },
+                    {
+                        type: "IdentifierExpression",
+                        lexeme: "b",
+                    },
+                    {
+                        type: "IdentifierExpression",
+                        lexeme: "c",
                     },
                 ],
                 body: {
                     type: "ReturnStatement",
-                },
-            },
-        });
-    });
-
-    test("named function expression", () => {
-        const { statements } = parse(
-            "func foo(x) x + 1;"
-        );
-
-        expect(statements[0].expression).toMatchObject({
-            type: "FunctionExpression",
-            name: {
-                type: "IdentifierExpression",
-                lexeme: "foo",
-            },
-        });
-    });
-
-    test("function expression with block body", () => {
-        const { statements } = parse(`
-            func(x) {
-                return x;
-            };
-        `);
-
-        expect(statements[0].expression).toMatchObject({
-            type: "FunctionExpression",
-            body: {
-                type: "BlockStatement",
-                body: [
-                    {
-                        type: "ReturnStatement",
+                    expression: {
+                        type: "LiteralExpression",
+                        value: 42,
                     },
-                ],
-            },
+                },
+            });
         });
-    });
 
-});
-
-
-/*=============================*/
-/* Errors                      */
-/*=============================*/
-
-describe("parser errors", () => {
-
-    test("reports missing semicolon", () => {
-        const { diagnostics } = parse("var x = 10");
-
-        expect(diagnostics.length).toBeGreaterThan(0);
-    });
-
-    test("reports missing closing parenthesis", () => {
-        const { diagnostics } = parse("(10;");
-
-        expect(diagnostics.length).toBeGreaterThan(0);
-    });
-
-    test("reports missing closing square bracket", () => {
-        const { diagnostics } = parse("[1, 2;");
-
-        expect(diagnostics.length).toBeGreaterThan(0);
-    });
-
-    test("reports missing closing curly bracket", () => {
-        const { diagnostics } = parse("{ var x = 1;");
-
-        expect(diagnostics.length).toBeGreaterThan(0);
-    });
-
-    test("reports missing expression", () => {
-        const { diagnostics } = parse("var x = ;");
-
-        expect(diagnostics.length).toBeGreaterThan(0);
-    });
-
-    test("recovers after an invalid declaration", () => {
-        const { statements, diagnostics } = parse(`
-            var x = ;
-            var y = 10;
+        test("With block", () => {
+            const { statements } = parse(`
+            func a(b) {
+                var c = b;
+                return c;
+            }
         `);
 
-        expect(diagnostics.length).toBeGreaterThan(0);
-
-        expect(statements).toHaveLength(1);
-
-        expect(statements[0]).toMatchObject({
-            type: "VariableDeclaration",
-            name: {
-                lexeme: "y",
-            },
-            initialiser: {
-                value: 10,
-            },
+            expect(statements[0]).toMatchObject({
+                type: "FunctionDeclaration",
+                name: {
+                    lexeme: "a",
+                },
+                body: {
+                    type: "BlockStatement",
+                    body: [
+                        {
+                            type: "VariableDeclaration",
+                        },
+                        {
+                            type: "ReturnStatement",
+                        },
+                    ],
+                },
+            });
         });
+
     });
 
 });

@@ -18,10 +18,14 @@ export function runFile(filePath) {
         console.error("Error reading file: ", /** @type {Error} */(error).message);
         return;
     }
-    
+
     const absolutePath = path.resolve(filePath);
-    run(source, absolutePath, {
-        logger: console.log,
+    run({
+        source, 
+        path: absolutePath, 
+        host: {
+            log: console.log,
+        },
         colors: {
             red,
             yellow,
