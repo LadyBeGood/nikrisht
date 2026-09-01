@@ -96,7 +96,6 @@ function setupSettings(editor) {
     /* Tab size */
     elements.settingsTabSize.addEventListener("change", function () {
         const newSize = Number(this.value);
-        console.log(newSize)
         const oldSize = editor.session.getTabSize();
 
         if (elements.settingsInsertSpaces.checked && oldSize !== newSize && newSize > 0) {
@@ -223,7 +222,6 @@ function setupResponsiveness() {
 
 
 function toggleShortcutButtonsVisibility() {
-    // console.log(elements.shortcutButtons.dataset.isVisible)
     if (elements.shortcutButtons.dataset.isVisible === "true") {
         elements.shortcutButtons.style.transform = "translateY(100%)";
         elements.left.style.paddingBottom = "0";
@@ -595,11 +593,16 @@ function setupActionButtons(editor) {
     elements.actionPlay.addEventListener("click", () => {
         const source = editor.getValue();
         elements.logTarget.innerHTML = "";
-        const interpreter = run(source, "Playground", {
+        const interpreter = run({
+            source,
+            path: "Playground",
             colors,
-            log,
+            host: {log},
             escape
         });
+
+        // Padding at the bottom
+        elements.logTarget.innerHTML += "\n";
 
         let numberOfErrors = 0;
         let numberOfWarnings = 0;
