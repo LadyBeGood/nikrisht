@@ -52,6 +52,10 @@ body > .left {
                 display: grid;
                 place-items: center;
             }
+
+            .show-docs {
+                display: none;
+            }
         }
     }
 
@@ -141,6 +145,171 @@ body > .right {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.documentation.narrow {
+    flex-direction: column;
+    position: relative;
+
+    .sidebar {
+        /* display: none; */
+        position: absolute;
+        top: 47px;
+        z-index: 1;
+        left: -100%;
+        background-color: #282a36;
+        transition: all 0.2s;
+
+        &.active {
+            left: 0;
+        }
+
+        .search-results {
+            display: none;
+        }
+    }
+
+    .topbar {
+        display: flex;
+        height: 45px;
+        align-items: center;
+        gap: 2px;
+
+        .search-box {
+            flex-grow: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+
+            .search-row {
+                background-color: #17191a;
+                flex-grow: 1;
+                height: 100%;
+
+                input {
+                    height: 100%;
+                    padding-inline: 12px;
+                }
+            }
+
+            .search-controls {
+                display: flex;
+                height: 100%;
+                font-size: 13px;
+
+                .search-result-count {
+                    position: absolute;
+                    top: 55px;
+                    left: 50%;
+                    background: #17191a;
+                    transform: translateX(-50%);
+                    padding: 6px 12px;
+                    border-radius: 999px;
+                    font-size: 13px;
+                    z-index: 1;
+                }
+
+                .navigation-arrows {
+                    display: grid;
+                    grid-template-areas:
+                        "previous cross"
+                        "next     cross";
+                    gap: 2px;
+
+                    .navigation-button {
+                        width: 45px;
+                        background: #282a36;
+                        display: grid;
+                        place-items: center;
+
+                        &.cross {
+                            grid-area: cross;
+                        }
+
+                        &.previous {
+                            grid-area: previous;
+                        }
+
+                        &.next {
+                            grid-area: next;
+                        }
+                    }
+
+
+                }
+            }
+        }
+
+        .toggle-topics {
+            background-color: #282a36;
+            display: grid;
+            place-items: center;
+            height: 45px;
+            width: 45px;
+        }
+    }
+
+    .content {
+        display: block;
+        transition: all 0.2s;
+        position: relative;
+
+
+        &.dim {
+            filter: brightness(0.5);
+            cursor: pointer;
+
+        }
+
+
+    }
+}
+
+
+
+
+
+
+
+
+
 .documentation {
     display: flex;
     width: 100%;
@@ -151,6 +320,9 @@ body > .right {
     overflow: hidden;
     gap: 2px;
 
+    .topbar {
+        display: none;
+    }
 
     .sidebar {
         width: 200px;
@@ -310,9 +482,10 @@ body > .right {
                         border-radius: 4px;
                         margin: 1px 6px;
 
-                        &:hover {
+                        &:hover, &.active {
                             background-color: var(--utk-hover);
                             color: var(--utk-text);
+                            font-weight: bold;
                         }
                     }
                 }
@@ -962,8 +1135,8 @@ Retrieved 2026-08-27, License - CC BY-SA 4.0
 
 
 
-/* Laptops / Small Desktops down */
-@media (max-width: 1200px) {
+/* Laptops / Small Desktops */
+@media (max-width: 1300px) {
     body > .right {
         .documentation {
             
@@ -973,6 +1146,7 @@ Retrieved 2026-08-27, License - CC BY-SA 4.0
         }
     }
 }
+
 
 
 @media all and (max-width: 768px) {
@@ -988,6 +1162,9 @@ Retrieved 2026-08-27, License - CC BY-SA 4.0
         }
     }
 
+    .show-docs {
+        display: grid !important;
+    }
 }
 
 @media all and (max-width: 360px) {

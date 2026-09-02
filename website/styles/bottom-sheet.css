@@ -43,6 +43,11 @@ bottom-sheet .content {
             .console, .tree {
                 font-size: 14px;
             }
+
+            .bottom-bar {
+                position: fixed;
+                bottom: 0;
+            }
         }
     }
 
@@ -54,6 +59,7 @@ bottom-sheet .content {
         position: absolute;
         padding: 8px;
         background-color: #282a36;
+        cursor: pointer;
         /* border: 2px solid #44475a; */
     
         &:hover {
@@ -63,3 +69,14 @@ bottom-sheet .content {
 }
 
 
+.bottom-sheet-documentation {
+    .documentation.narrow {
+        .sidebar {
+            top: 49px;
+        }
+        
+        .topbar {
+            margin-top: 2px;
+        }
+    }
+}

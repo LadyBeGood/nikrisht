@@ -264,14 +264,49 @@ class BottomSheet extends HTMLElement {
         this._applyTransform();
     }
 
+    _isScrollable(el) {
+        if (!el || el === this._sheet || el === this) return false;
+
+        const style = window.getComputedStyle(el);
+        const overflowY = style.overflowY;
+
+        return (overflowY === 'auto' || overflowY === 'scroll') &&
+            el.scrollHeight > el.clientHeight;
+    }
+    
     // Event wrappers
     _onTouchStart = (e) => this._handleDragStart(e.touches[0].pageY);
     _onTouchMove = (e) => {
-        // Prevent page scroll while dragging the sheet
-        if (this._isPointerDown && !(this._isFullscreen && this._scrollContainer?.scrollTop > 0)) {
-            e.preventDefault();
+        if (!this._isPointerDown) return;
+
+        const touchY = e.touches[0].pageY;
+        const deltaY = touchY - this._startY;
+
+        // Walk up from the touched element to see if we're on a scrollable area
+        let target = e.target;
+        let scrollable = null;
+
+        while (target && target !== this._sheet) {
+            if (this._isScrollable(target)) {
+                scrollable = target;
+                break;
+            }
+            target = target.parentElement;
         }
-        this._handleDragMove(e.touches[0].pageY);
+
+        if (scrollable) {
+            const atTop = scrollable.scrollTop <= 0;
+            const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
+
+            // If the user is trying to scroll the content, let them
+            if ((deltaY > 0 && !atTop) || (deltaY < 0 && !atBottom)) {
+                return; // important: do NOT preventDefault, do NOT drag the sheet
+            }
+        }
+
+        // Otherwise drag the sheet
+        e.preventDefault();
+        this._handleDragMove(touchY);
     };
     _onTouchEnd = () => this._handleDragEnd();
 
@@ -320,7 +355,7 @@ class BottomSheet extends HTMLElement {
           right: 0;
           max-height: 100svh;
           z-index: 999;
-          touch-action: none;
+        /* touch-action: pan-y ; */
           user-select: none;
           cursor: grab;
           transition: transform ${this.ANIMATION_DURATION}ms;

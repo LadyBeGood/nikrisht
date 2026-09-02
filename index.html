@@ -48,7 +48,7 @@
                 </select>
             </div>
             <div class="actions">
-                <button data-open-sheet="documentation">
+                <button class="show-docs" data-open-sheet="documentation">
                     <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor">
                         <path d="M508.5-291.5Q520-303 520-320v-160q0-17-11.5-28.5T480-520q-17 0-28.5 11.5T440-480v160q0 17 11.5 28.5T480-280q17 0 28.5-11.5Zm0-320Q520-623 520-640t-11.5-28.5Q497-680 480-680t-28.5 11.5Q440-657 440-640t11.5 28.5Q463-600 480-600t28.5-11.5ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z" />
                     </svg>
@@ -176,10 +176,7 @@
                 </div>
                 <div data-pane-content="debugger" class="debugger" style="display: none;">
                     <div class="initial-screen" style="text-align: center;">
-                        <div>
-                            <p>I will complete this section after I get a job 😭🙏</p>
-                            <p>Made with 😿 by LadyBeGood</p>
-                        </div>
+                        I will complete this section after I get a job 😭🙏
                     </div>
                 </div>
             </div>
@@ -222,9 +219,17 @@
 
 
         <div data-documentation class="documentation">
+            <div class="topbar" data-documentation-topbar>
+                <!-- <div data-documentation-topbar-sidebar class="topbar-sidebar"></div> -->
+                <button data-toggle-topics class="toggle-topics">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff">
+                        <path d="M160-240q-17 0-28.5-11.5T120-280q0-17 11.5-28.5T160-320h440q17 0 28.5 11.5T640-280q0 17-11.5 28.5T600-240H160Zm596-68L612-452q-12-12-12-28t12-28l144-144q11-11 28-11t28 11q11 11 11 28t-11 28L696-480l116 116q11 11 11 28t-11 28q-11 11-28 11t-28-11ZM160-440q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520h320q17 0 28.5 11.5T520-480q0 17-11.5 28.5T480-440H160Zm0-200q-17 0-28.5-11.5T120-680q0-17 11.5-28.5T160-720h440q17 0 28.5 11.5T640-680q0 17-11.5 28.5T600-640H160Z"/>
+                    </svg>
+                </button>
+            </div>
 
             <div class="sidebar" data-documentation-sidebar data-collapsed="false">
-                <div class="search-box">
+                <div data-documentation-search-box class="search-box">
                     <div class="search-row">
                         <input type="text" class="search-input" data-documentation-search-field placeholder="Search..." autocomplete="off">
                     </div>
@@ -235,14 +240,19 @@
                         </span>
 
                         <div class="navigation-arrows">
-                            <button data-documentation-search-previous-button class="navigation-button" title="Previous Result">▲</button>
-                            <button data-documentation-search-next-button class="navigation-button" title="Next Result">▼</button>
+                            <button data-documentation-search-previous-button class="navigation-button previous" title="Previous Result">▲</button>
+                            <button data-documentation-search-next-button class="navigation-button next" title="Next Result">▼</button>
+                            <button data-documentation-search-clear-button class="navigation-button cross" title="Clear search">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#fff">
+                                    <path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Topics, hidden automatically during search execution -->
-                <ul class="topics" data-topics>
+                <ul class="topics" data-documentation-topics>
                     <li class="topic open" data-topic>
                         <div class="topic-name" data-topic-name>Language</div>
 
@@ -478,7 +488,7 @@
         </div>
     </bottom-sheet>
 
-    <bottom-sheet class="bottom-sheet-documentation" data-bottom-sheet-documentation type="2" overlay low="0" middle="50" high="100" height="100svh">
+    <bottom-sheet class="bottom-sheet-documentation" data-bottom-sheet-documentation type="2" overlay low="0" middle="100" high="100" height="100svh">
     </bottom-sheet>
 
 </body>

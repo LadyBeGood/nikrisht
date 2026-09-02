@@ -183,8 +183,9 @@ function setupAceEditor(editor) {
 
 function setupResponsiveness() {
     const mobileQuery = window.matchMedia("(max-width: 480px)");
+    const tabletQuery = window.matchMedia("(max-width: 1150px)");
 
-    function handleTabletChange(event) {
+    function handleMobileChange(event) {
         let fontSize;
         let tabSize;
 
@@ -215,8 +216,21 @@ function setupResponsiveness() {
         elements.settingsTabSize.dispatchEvent(changeEvent);
     }
 
-    mobileQuery.addEventListener("change", handleTabletChange);
-    handleTabletChange(mobileQuery);
+    function handleTabletChange(event) {
+        if (event.matches) {
+            elements.documentation.classList.add("narrow");
+            elements.documentationTopbar.appendChild(elements.documentationSearchBox);
+        } else {
+            elements.documentation.classList.remove("narrow");
+            elements.documentationSidebar.prepend(elements.documentationSearchBox);
+        }
+    }
+
+    mobileQuery.addEventListener("change", handleMobileChange);
+    handleMobileChange(mobileQuery);
+
+    tabletQuery.addEventListener("change", handleTabletChange);
+    handleTabletChange(tabletQuery);
 }
 
 
@@ -380,10 +394,10 @@ export async function setupDocumentation() {
         }
     }
 
-    function renderDocument(fileKey) {
+    function renderDocument(fileKey, scrollTo) {
         if (!fileKey || !fileContentCache[fileKey]) return;
         elements.documentationContent.innerHTML = fileContentCache[fileKey];
-        elements.documentationContent.scrollTop = 0;
+        elements.documentationContent.scrollTop = scrollTo;
 
         Prism.highlightAll();
     }
@@ -431,7 +445,7 @@ export async function setupDocumentation() {
 
             const currentActiveButton = elements.documentationSidebar.querySelector("[data-sub-topic].active");
             if (currentActiveButton) {
-                renderDocument(currentActiveButton.dataset.fileName);
+                renderDocument(currentActiveButton.dataset.fileName, elements.documentationContent.scrollTop);
             }
 
             searchMatches = [];
@@ -510,7 +524,7 @@ export async function setupDocumentation() {
             syncSearchNavigationState();
         } else {
             elements.documentationSearchControls.style.display = "flex";
-            elements.documentationSearchResultCount.textContent = "0/0 results";
+            elements.documentationSearchResultCount.textContent = "0/0";
             elements.documentationSearchResults.innerHTML = `<div style="padding: 16px; text-align: center; font-size: 13px; color: #a9b2c3;">No matches found.</div>`;
             currentMatchIndex = -1;
         }
@@ -546,6 +560,9 @@ export async function setupDocumentation() {
             if (activeMarkElement) {
                 activeMarkElement.classList.add("utk-mark--active");
                 activeMarkElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                // To solve a bug in Firefox
+                elements.documentation.scrollTop = 0;
             }
         }
 
@@ -554,12 +571,15 @@ export async function setupDocumentation() {
             if (index === currentMatchIndex) {
                 card.classList.add("utk-search-card--active");
                 card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+                // To solve a bug in Firefox
+                elements.documentation.scrollTop = 0;
             } else {
                 card.classList.remove("utk-search-card--active");
             }
         });
 
-        elements.documentationSearchResultCount.textContent = `${currentMatchIndex + 1}/${searchMatches.length} results`;
+        elements.documentationSearchResultCount.textContent = `${currentMatchIndex + 1}/${searchMatches.length}`;
     }
 
     function navigateToNextMatch() {
@@ -568,22 +588,37 @@ export async function setupDocumentation() {
         syncSearchNavigationState();
     }
 
+    function navigateToPreviousMatch() {
+        if (searchMatches.length === 0) return;
+        currentMatchIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
+        syncSearchNavigationState();
+    }
+
+    function clearSearchField() {
+        elements.documentationSearchField.value = "";
+        executeSearch();
+    }
+
     // ==========================================
     // EVENTS
     // ==========================================
     elements.documentationSearchField.addEventListener("input", executeSearch);
     elements.documentationSearchNextButton.addEventListener("click", navigateToNextMatch);
-
-    elements.documentationSearchPreviousButton.addEventListener("click", () => {
-        if (searchMatches.length === 0) return;
-        currentMatchIndex = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length;
-        syncSearchNavigationState();
-    });
+    elements.documentationSearchPreviousButton.addEventListener("click", navigateToPreviousMatch);
+    elements.documentationSearchClearButton.addEventListener("click", clearSearchField)
 
     elements.documentationSearchField.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
             event.preventDefault();
-            navigateToNextMatch();
+
+            if (event.shiftKey) {
+                navigateToPreviousMatch();
+            } else {
+                navigateToNextMatch();
+            }
+        } else if (event.key === "Escape") {
+            event.preventDefault();
+            clearSearchField()
         }
     });
 }
@@ -666,16 +701,21 @@ const MOBILE_BREAKPOINT = "(max-width: 768px)";
 
 function setupBottomSheets() {
 
-    /* ---------------- relocate .screen / .documentation ---------------- */
-
+    /**
+     * Relocate UI elements according to window width
+     */
     function applyLayout(isMobile) {
         if (isMobile) {
             elements.bottomSheetScreen.appendChild(elements.screen);
             elements.bottomSheetDocumentation.appendChild(elements.documentation);
+            elements.documentation.classList.add("narrow");
+            elements.documentationTopbar.appendChild(elements.documentationSearchBox);
         } else {
             // Restore original desktop order: .screen then .documentation
             elements.right.appendChild(elements.screen);
             elements.right.appendChild(elements.documentation);
+            elements.documentation.classList.remove("narrow");
+            elements.documentationSidebar.prepend(elements.documentationSearchBox);
 
 
             // Sheets are meaningless on desktop — make sure they're closed
@@ -684,14 +724,17 @@ function setupBottomSheets() {
         }
     }
 
-    const mq = window.matchMedia(MOBILE_BREAKPOINT);
-    applyLayout(mq.matches);
-    mq.addEventListener("change", (event) => applyLayout(event.matches));
+    const media = window.matchMedia(MOBILE_BREAKPOINT);
+    applyLayout(media.matches);
+    media.addEventListener("change", (event) => applyLayout(event.matches));
 
-    /* ---------------- open / close wiring ---------------- */
+
+
+    /* Opening and closing bottomsheets */
 
     elements.bottomSheetOpenerList.forEach((bottomSheetOpener) => {
         bottomSheetOpener.addEventListener("click", () => {
+            if (window.innerWidth > 768) return;
             const bottomSheet = document.querySelector(`[data-bottom-sheet-${bottomSheetOpener.dataset.openSheet}]`);
             if (bottomSheet) bottomSheet.open = true;
         });
@@ -704,7 +747,17 @@ function setupBottomSheets() {
         });
     });
 
-    /* ---------------- docs: topics <-> content view toggle ---------------- */
+    elements.toggleTopicsButton.addEventListener("click", () => {
+        elements.documentationSidebar.classList.toggle("active");
+        elements.documentationContent.classList.toggle("dim")
+    })
+
+    elements.documentationContent.addEventListener("click", () => {
+        if (!elements.documentationSidebar.classList.contains("active")) return;
+
+        elements.documentationSidebar.classList.remove("active");
+        elements.documentationContent.classList.remove("dim");
+    })
 
 }
 
