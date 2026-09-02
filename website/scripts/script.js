@@ -395,7 +395,7 @@ export async function setupDocumentation() {
     }
 
     function renderDocument(fileKey, scrollTo) {
-        if (!fileKey || !fileContentCache[fileKey]) return;
+        if (!fileKey || fileContentCache[fileKey] === undefined) return;
         elements.documentationContent.innerHTML = fileContentCache[fileKey];
         elements.documentationContent.scrollTop = scrollTo;
 

@@ -1,7 +1,7 @@
 ### Loops
 Loop is a type sensitive construct. Therefore the behaviour of the loop depends upon the type of the data following it.
 
-#### Loop statement
+<!-- #### Loop statement -->
 Loop keyword not followed by any data type loops infinitely:
 ```
 loop {

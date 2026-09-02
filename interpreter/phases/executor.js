@@ -3,7 +3,7 @@
 
 import "../types.js";
 import { is_Array, is_Boolean, is_Function, is_Null, is_Number, is_Object, is_String, type } from "../core/guards.js";
-import { natives, stringify } from "../core/natives.js";
+import { nativeConstants, nativeFunctions, stringify } from "../core/natives.js";
 import { assign, assignAt, createEnvironment, declare, lookup, lookupAt } from "../core/environment.js";
 import { create_Function } from "../core/function.js";
 import { ExitSignal, ReturnSignal, SkipSignal } from "../core/signals.js";
@@ -21,8 +21,12 @@ import { getLexeme } from "../core/token.js";
 export function createExecutor(interpreter) {
     const globals = createEnvironment();
 
-    for (const [name, fn] of Object.entries(natives)) {
-        declare(globals, name, fn);
+    for (const [name, constant] of Object.entries(nativeConstants)) {
+        declare(globals, name, constant, false)
+    }
+
+    for (const [name, fn] of Object.entries(nativeFunctions)) {
+        declare(globals, name, fn, false);
     }
 
     return {
@@ -349,7 +353,7 @@ function executeExpression(executor, expression) {
                 args.push(executeExpression(executor, argument));
             }
 
-            if (args.length != callee.arity) {
+            if (args.length < callee.arity) {
                 error(executor.interpreter, expression, `Function expects ${callee.arity} argument(s) but got ${args.length}`, "executor");
             }
                 

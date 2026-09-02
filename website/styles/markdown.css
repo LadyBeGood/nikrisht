@@ -30,6 +30,14 @@
     margin-bottom: 24px;
 }
 
+/* Remove bottom margin when a list is inside another list */
+.markdown ul ul,
+.markdown ol ul,
+.markdown ul ol,
+.markdown ol ol {
+    margin-bottom: 0;
+}
+
 .markdown li {
     list-style: initial;
     color: #ffffffcc;

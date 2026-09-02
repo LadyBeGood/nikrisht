@@ -17,7 +17,7 @@ export function stringify(data, indent = 1, quoteStrings = false) {
     if (is_String(data)) {
         return quoteStrings ? `"${data}"` : data;
     } else if (is_Number(data) || is_Boolean(data) || is_Null(data)) {
-        return String(data);
+        return String(data).toLowerCase();
     } else if (is_Array(data)) {
         /** 
          * 0 => Symbol after opening "[", and each 2
@@ -141,8 +141,16 @@ export function stringify(data, indent = 1, quoteStrings = false) {
 }
 
 
+
+export const nativeConstants = {
+    "pi": Math.PI,
+    "nan": NaN,
+    "infinity": Infinity,
+}
+
+
 /** @type {Record<string, _Function>} */
-export const natives = {
+export const nativeFunctions = {
     "write": {
         arity: 1,
         call(args, _, executor) {
@@ -174,8 +182,13 @@ export const natives = {
     // Object.toString() method and gives stupid errors.
     ["" + "toString"]: {
         arity: 1,
-        call(args) {
-            return String(args[0]);
+        call(args, expression, executor) {
+            if (args[1] !== undefined) {
+                if (!is_Boolean(args[1])) {
+                    error(executor.interpreter, expression.arguments[0], `Function "toString" expects a boolean as second argument, "quoteStrings", but got "${type(args[0])}"`, "executor");
+                }
+            }
+            return stringify(args[0], undefined, args[1]);
         }
     },
     "toNumber": {
@@ -216,8 +229,12 @@ export const natives = {
     "count": {
         arity: 1,
         call(args, expression, executor) {
-            if (!is_Array(args[0]) && !is_String(args[0])) {
-                error(executor.interpreter, expression.arguments[0], `Function "count" expects an array or string, but got "${type(args[0])}"`, "executor");
+            if (!is_Array(args[0]) && !is_String(args[0]) && !is_Object(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "count" expects a string, array or object, but got "${type(args[0])}"`, "executor");
+            }
+
+            if (is_Object(args[0])) {
+                return args[0].size;
             }
 
             return args[0].length;
@@ -261,16 +278,6 @@ export const natives = {
             }
 
             return [...args[0].values()];
-        }
-    },
-    "size": {
-        arity: 1,
-        call(args, expression, executor) {
-            if (!is_Object(args[0])) {
-                error(executor.interpreter, expression.arguments[0], `Function "size" expects an object, but got "${type(args[0])}"`, "executor");
-            }
-
-            return args[0].size;
         }
     },
     "sort": {
@@ -378,13 +385,13 @@ export const natives = {
         }
     },
     "slice": {
-        arity: 3,
+        arity: 2,
         call(args, expression, executor) {
             if (!is_Array(args[0]) && !is_String(args[0])) {
                 error(executor.interpreter, expression.arguments[0], `Function "slice" expects an array or string as its first argument, but got "${type(args[0])}"`, "executor");
             }
 
-            if (is_Null(args[2])) {
+            if (args[2] === undefined) {
                 args[2] = args[0].length;
             }
 
@@ -418,4 +425,188 @@ export const natives = {
             return args[0].pop() ?? null;
         }
     },
+    "split": {
+        arity: 2,
+        call(args, expression, executor) {
+            if (!is_String(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "split" expects a string as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+            if (!is_String(args[1])) {
+                error(executor.interpreter, expression.arguments[0], `Function "split" expects a string as its second argument, but got "${type(args[0])}"`, "executor");
+            }
+
+            return args[0].split(args[1]);
+        }
+    },
+    "join": {
+        arity: 2,
+        call(args, expression, executor) {
+            if (!is_Array(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "join" expects an array as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+            if (!is_String(args[1])) {
+                error(executor.interpreter, expression.arguments[0], `Function "join" expects a string as its second argument, but got "${type(args[0])}"`, "executor");
+            }
+
+            return args[0].join(args[1]);
+        }
+    },
+    "sum": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_Array(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "sum" expects an array, but got "${type(args[0])}"`, "executor");
+            }
+
+            for (let i = 0; i < args[0].length; i++) {
+                if (!is_Number(args[0][i])) {
+                    error(executor.interpreter, /** @type {ArrayExpression} */(expression.arguments[0]).elements[i], `Function "sum" requires all array items to be numbers, but found "${type(args[0][i])}"`, "executor");
+                }
+            }
+
+            return /** @type {_Number[]} */ (args[0]).reduce((a, b) => a + b, 0);
+        }
+    },
+    "startsWith": {
+        arity: 2,
+        call(args, expression, executor) {
+            if (!is_String(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "startsWith" expects a string as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+            if (!is_String(args[1])) {
+                error(executor.interpreter, expression.arguments[1], `Function "startsWith" expects a string as its second argument, but got "${type(args[1])}"`, "executor");
+            }
+
+            return args[0].startsWith(args[1]);
+        }
+    },
+    "endsWith": {
+        arity: 2,
+        call(args, expression, executor) {
+            if (!is_String(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "endsWith" expects a string as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+            if (!is_String(args[1])) {
+                error(executor.interpreter, expression.arguments[1], `Function "endsWith" expects a string as its second argument, but got "${type(args[1])}"`, "executor");
+            }
+
+            return args[0].endsWith(args[1]);
+        }
+    },
+    "lowercase": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_String(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "lowercase" expects a string, but got "${type(args[0])}"`, "executor");
+            }
+
+            return args[0].toLowerCase();
+        }
+    },
+    "uppercase": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_String(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "uppercase" expects a string, but got "${type(args[0])}"`, "executor");
+            }
+
+            return args[0].toUpperCase();
+        }
+    },
+    "capitalise": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_String(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "capitalise" expects a string, but got "${type(args[0])}"`, "executor");
+            }
+
+            if (args[0].length === 0) return "";
+            return args[0][0].toUpperCase() + args[0].slice(1).toLowerCase();
+        }
+    },
+    "titlecase": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_String(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "titlecase" expects a string, but got "${type(args[0])}"`, "executor");
+            }
+
+            return args[0]
+                .toLowerCase()
+                .split(" ")
+                .map(word => word.length === 0 ? "" : word[0].toUpperCase() + word.slice(1))
+                .join(" ");
+        }
+    },
+    "truncate": {
+        arity: 2,
+        call(args, expression, executor) {
+            if (!is_Number(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "truncate" expects a number as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+
+            return Math.trunc(args[0]);
+        }
+    },
+    "log": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_Number(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "log" expects a number as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+
+            let base = 10;
+            if (args[1] !== undefined) {
+                if (!is_Number(args[1])) {
+                    error(executor.interpreter, expression.arguments[1], `Function "log" expects a number as its second argument, but got "${type(args[1])}"`, "executor");
+                }
+                base = args[1];
+            }
+
+            return Math.log(args[0]) / Math.log(base);
+        }
+    },
+    "trim": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_String(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "trim" expects a string as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+
+            if (args[1] === undefined) {
+                return args[0].trim();
+            }
+
+            if (!is_String(args[1])) {
+                error(executor.interpreter, expression.arguments[1], `Function "trim" expects "left" or "right" as its second argument, but got "${type(args[1])}"`, "executor");
+            }
+
+            if (args[1] === "left") {
+                return args[0].trimStart();
+            } else if (args[1] === "right") {
+                return args[0].trimEnd();
+            } else {
+                error(executor.interpreter, expression.arguments[1], `Function "trim" second argument must be "left" or "right", but got "${args[1]}"`, "executor");
+            }
+        }
+    },
+    "isNan": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_Number(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "isNan" expects a number as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+            return Number.isNaN(args[0]);
+        }
+    },
+    "isFinite": {
+        arity: 1,
+        call(args, expression, executor) {
+            if (!is_Number(args[0])) {
+                error(executor.interpreter, expression.arguments[0], `Function "isFinite" expects a number as its first argument, but got "${type(args[0])}"`, "executor");
+            }
+            return Number.isFinite(args[0]);
+        }
+    },
 }
+
