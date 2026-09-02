@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="./website/styles/ace.css">
     <link rel="stylesheet" href="./website/styles/markdown.css">
     <link rel="stylesheet" href="./website/styles/prism.css">
+    <link rel="stylesheet" href="./website/styles/bottom-sheet.css">
 
     <!-- Scripts -->
     <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -28,6 +29,7 @@
     <script defer src="./website/scripts/prism.js" defer></script>
     <script defer src="./website/scripts/mode-nikrisht.js" defer></script>
     <script defer src="./website/scripts/script.js" defer type="module"></script>
+    <script defer src="./website/scripts/bottom-sheet.js" defer type="module"></script>
 
 </head>
 
@@ -46,15 +48,13 @@
                 </select>
             </div>
             <div class="actions">
-                <button class="documentation">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"
-                        fill="currentColor">
-                        <path
-                            d="M508.5-291.5Q520-303 520-320v-160q0-17-11.5-28.5T480-520q-17 0-28.5 11.5T440-480v160q0 17 11.5 28.5T480-280q17 0 28.5-11.5Zm0-320Q520-623 520-640t-11.5-28.5Q497-680 480-680t-28.5 11.5Q440-657 440-640t11.5 28.5Q463-600 480-600t28.5-11.5ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z" />
+                <button data-open-sheet="documentation">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor">
+                        <path d="M508.5-291.5Q520-303 520-320v-160q0-17-11.5-28.5T480-520q-17 0-28.5 11.5T440-480v160q0 17 11.5 28.5T480-280q17 0 28.5-11.5Zm0-320Q520-623 520-640t-11.5-28.5Q497-680 480-680t-28.5 11.5Q440-657 440-640t11.5 28.5Q463-600 480-600t28.5-11.5ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z" />
                     </svg>
                 </button>
 
-                <button data-action-play class="play">
+                <button data-action-play data-open-sheet="screen" class="play">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6 19.5425V4.45749C6 4.04453 6.13827 3.69838 6.41481 3.41903C6.69136 3.13968 7.01399 3 7.38272 3C7.49794 3 7.61893 3.01822 7.74568 3.05466C7.87243 3.09109 7.99342 3.14575 8.10864 3.21862L19.3778 10.7611C19.5852 10.9069 19.7407 11.0891 19.8444 11.3077C19.9481 11.5263 20 11.7571 20 12C20 12.2429 19.9481 12.4737 19.8444 12.6923C19.7407 12.9109 19.5852 13.0931 19.3778 13.2389L8.10864 20.7814C7.99342 20.8542 7.87243 20.9089 7.74568 20.9453C7.61893 20.9818 7.49794 21 7.38272 21C7.01399 21 6.69136 20.8603 6.41481 20.581C6.13827 20.3016 6 19.9555 6 19.5425Z" fill="currentColor" />
                     </svg>
@@ -63,8 +63,7 @@
                 <button data-settings class="settings">
                     <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"
                         fill="currentColor">
-                        <path
-                            d="M433-80q-27 0-46.5-18T363-142l-9-66q-13-5-24.5-12T307-235l-62 26q-25 11-50 2t-39-32l-47-82q-14-23-8-49t27-43l53-40q-1-7-1-13.5v-27q0-6.5 1-13.5l-53-40q-21-17-27-43t8-49l47-82q14-23 39-32t50 2l62 26q11-8 23-15t24-12l9-66q4-26 23.5-44t46.5-18h94q27 0 46.5 18t23.5 44l9 66q13 5 24.5 12t22.5 15l62-26q25-11 50-2t39 32l47 82q14 23 8 49t-27 43l-53 40q1 7 1 13.5v27q0 6.5-2 13.5l53 40q21 17 27 43t-8 49l-48 82q-14 23-39 32t-50-2l-60-26q-11 8-23 15t-24 12l-9 66q-4 26-23.5 44T527-80h-94Zm49-260q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Z" />
+                        <path d="M433-80q-27 0-46.5-18T363-142l-9-66q-13-5-24.5-12T307-235l-62 26q-25 11-50 2t-39-32l-47-82q-14-23-8-49t27-43l53-40q-1-7-1-13.5v-27q0-6.5 1-13.5l-53-40q-21-17-27-43t8-49l47-82q14-23 39-32t50 2l62 26q11-8 23-15t24-12l9-66q4-26 23.5-44t46.5-18h94q27 0 46.5 18t23.5 44l9 66q13 5 24.5 12t22.5 15l62-26q25-11 50-2t39 32l47 82q14 23 8 49t-27 43l-53 40q1 7 1 13.5v27q0 6.5-2 13.5l53 40q21 17 27 43t-8 49l-48 82q-14 23-39 32t-50-2l-60-26q-11 8-23 15t-24 12l-9 66q-4 26-23.5 44T527-80h-94Zm49-260q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Z" />
                     </svg>
                 </button>
             </div>
@@ -124,7 +123,7 @@
 
     <div class="right" data-right>
 
-        <div class="screen">
+        <div data-screen class="screen">
             <div data-screen-display class="display">
                 <div data-pane-content="console" class="console">
                     <div data-initial-screen class="initial-screen">
@@ -178,8 +177,8 @@
                 <div data-pane-content="debugger" class="debugger" style="display: none;">
                     <div class="initial-screen" style="text-align: center;">
                         <div>
-                            <p>I will complete this pane after I escape unemployment 😭🙏.</p>
-                            <p>Made with 😿 by LadyBeGood.</p>
+                            <p>I will complete this section after I get a job 😭🙏</p>
+                            <p>Made with 😿 by LadyBeGood</p>
                         </div>
                     </div>
                 </div>
@@ -189,8 +188,7 @@
                 <button data-pane-button="console" class="pane active">
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <g clip-path="url(#clip0_138_15)">
-                            <path d="M5 5L10 10L5 15M12 17H19" stroke="white" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
+                            <path d="M5 5L10 10L5 15M12 17H19" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         </g>
                         <defs>
                             <clipPath id="clip0_138_15">
@@ -215,7 +213,6 @@
 
                 <button data-pane-button="debugger" class="pane">
                     <svg xmlns="http://www.w3.org/2000/svg" width="21" height="22" viewBox="0 0 16 16">
-                        <path d="M0 0h16v16H0z" fill="none" />
                         <path fill="currentColor" d="M4.72.22a.75.75 0 0 1 1.06 0l1 .999a3.5 3.5 0 0 1 2.441 0l.999-1a.748.748 0 0 1 1.265.332a.75.75 0 0 1-.205.729l-.775.776c.616.63.995 1.493.995 2.444v.327q0 .15-.025.292c.408.14.764.392 1.029.722l1.968-.787a.75.75 0 0 1 .556 1.392L13 7.258V9h2.25a.75.75 0 0 1 0 1.5H13v.5q-.002.615-.141 1.186l2.17.868a.75.75 0 0 1-.557 1.392l-2.184-.873A5 5 0 0 1 8 16a5 5 0 0 1-4.288-2.427l-2.183.873a.75.75 0 0 1-.558-1.392l2.17-.868A5 5 0 0 1 3 11v-.5H.75a.75.75 0 0 1 0-1.5H3V7.258L.971 6.446a.75.75 0 0 1 .558-1.392l1.967.787c.265-.33.62-.583 1.03-.722a2 2 0 0 1-.026-.292V4.5c0-.951.38-1.814.995-2.444L4.72 1.28a.75.75 0 0 1 0-1.06m.53 6.28a.75.75 0 0 0-.75.75V11a3.5 3.5 0 1 0 7 0V7.25a.75.75 0 0 0-.75-.75ZM6.173 5h3.654A.17.17 0 0 0 10 4.827V4.5a2 2 0 1 0-4 0v.327c0 .096.077.173.173.173" />
                     </svg>
                 </button>
@@ -224,7 +221,7 @@
         </div>
 
 
-        <div class="documentation">
+        <div data-documentation class="documentation">
 
             <div class="sidebar" data-documentation-sidebar data-collapsed="false">
                 <div class="search-box">
@@ -475,6 +472,14 @@
         </div>
     </div>
 
+    <bottom-sheet class="bottom-sheet-screen" data-bottom-sheet-screen type="2" overlay low="0" middle="100" high="100" height="100svh">
+        <div class="close-bottom-sheet" data-close-sheet="screen">
+            <img src="./website/assets/arrow-down-2.svg" alt="close result bottom sheet">
+        </div>
+    </bottom-sheet>
+
+    <bottom-sheet class="bottom-sheet-documentation" data-bottom-sheet-documentation type="2" overlay low="0" middle="50" high="100" height="100svh">
+    </bottom-sheet>
 
 </body>
 

@@ -82,3 +82,9 @@ body {
     color: #f8f8f2;
     gap: 2px;
 }
+
+
+
+svg {
+    pointer-events: none;
+}

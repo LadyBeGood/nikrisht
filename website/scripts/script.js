@@ -660,7 +660,60 @@ function setupPaneButtons() {
     });
 }
 
+
+
+const MOBILE_BREAKPOINT = "(max-width: 768px)";
+
+function setupBottomSheets() {
+
+    /* ---------------- relocate .screen / .documentation ---------------- */
+
+    function applyLayout(isMobile) {
+        if (isMobile) {
+            elements.bottomSheetScreen.appendChild(elements.screen);
+            elements.bottomSheetDocumentation.appendChild(elements.documentation);
+        } else {
+            // Restore original desktop order: .screen then .documentation
+            elements.right.appendChild(elements.screen);
+            elements.right.appendChild(elements.documentation);
+
+
+            // Sheets are meaningless on desktop — make sure they're closed
+            elements.bottomSheetScreen.open = false;
+            elements.bottomSheetDocumentation.open = false;
+        }
+    }
+
+    const mq = window.matchMedia(MOBILE_BREAKPOINT);
+    applyLayout(mq.matches);
+    mq.addEventListener("change", (event) => applyLayout(event.matches));
+
+    /* ---------------- open / close wiring ---------------- */
+
+    elements.bottomSheetOpenerList.forEach((bottomSheetOpener) => {
+        bottomSheetOpener.addEventListener("click", () => {
+            const bottomSheet = document.querySelector(`[data-bottom-sheet-${bottomSheetOpener.dataset.openSheet}]`);
+            if (bottomSheet) bottomSheet.open = true;
+        });
+    });
+
+    elements.bottomSheetCloserList.forEach((bottomSheetCloser) => {
+        bottomSheetCloser.addEventListener("click", () => {
+            const bottomSheet = bottomSheetCloser.closest("bottom-sheet");
+            if (bottomSheet) bottomSheet.open = false;
+        });
+    });
+
+    /* ---------------- docs: topics <-> content view toggle ---------------- */
+
+}
+
+
+
+
 function main() {
+    // debugger
+    setupBottomSheets();
     const editor = ace.edit("editor");
     setupResponsiveness(editor);
     setupAceEditor(editor);

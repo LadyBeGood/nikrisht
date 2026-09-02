@@ -8,6 +8,9 @@ export const elements = {
 
     examples: $("[data-examples]"),
 
+    screen: $("[data-screen]"),
+    documentation: $("[data-documentation]"),
+
     settings: $("[data-settings]"),
     settingsMenu: $("[data-settings-menu]"),
     settingsOverlay: $("[data-settings-overlay]"),
@@ -61,5 +64,9 @@ export const elements = {
 
     actionPlay: $("[data-action-play]"),
 
+    bottomSheetScreen: $("[data-bottom-sheet-screen]"),
+    bottomSheetDocumentation: $("[data-bottom-sheet-documentation]"),
+    bottomSheetOpenerList: $$("[data-open-sheet]"),
+    bottomSheetCloserList: $$("[data-close-sheet]"),
 }
 
