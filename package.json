@@ -13,11 +13,12 @@
     ],
     "files": [
         "interpreter",
-        "cli"
+        "runner",
+        "CLI"
     ],
     "license": "MIT-0",
     "bin": {
-        "nki": "./cli/nki.js"
+        "nki": "./CLI/nki.js"
     },
     "bugs": {
         "url": "https://github.com/LadyBeGood/nikrisht/issues"

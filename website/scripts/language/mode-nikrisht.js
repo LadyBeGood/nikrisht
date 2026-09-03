@@ -57,7 +57,7 @@ ace.define("ace/mode/nikrisht_highlight_rules", [
                 // Keywords
                 {
                     token: "keyword",
-                    regex: "\\b(else|loop|with|func|if|return|var|const)\\b"
+                    regex: "\\b(else|loop|with|func|if|return|var|const|skip|exit)\\b"
                 },
                 // Function
                 {

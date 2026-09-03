@@ -171,5 +171,5 @@ For the best development experience, install the official **Nikrisht VS Code Ext
 
 ## License
 
-- [`/interpreter`](./interpreter), [`/documentation`](./documentation), [`/cli`](./cli), [`/tests`](./tests), [`/runner`](./runner) - MIT-0, see each folder's `license.txt`
+- [`/interpreter`](./interpreter), [`/documentation`](./documentation), [`/CLI`](./CLI), [`/tests`](./tests), [`/runner`](./runner) - MIT-0, see each folder's `license.txt`
 - [`/website`](./website), [`/extension`](./extension) - All Rights Reserved

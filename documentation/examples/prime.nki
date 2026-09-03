@@ -14,4 +14,4 @@ func isPrime(number) {
     return true;
 }
 
-write(isPrime(117));
+write(isPrime(67));

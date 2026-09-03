@@ -4,7 +4,7 @@ Conditionals control which block will be executed based on a **condition**.
 The condition must be a boolean value, Nikrisht does not have truthy or falsy values. 
 
 
-<!-- #### Conditional statements -->
+#### Conditional statements
 ```
 if (age < 13) {
     write("You're a child");
@@ -14,7 +14,7 @@ if (age < 13) {
     write("You're a teen");
 }
 ```
-<!-- 
+
 #### Conditional expressions
 ```
 const status = 
@@ -24,7 +24,7 @@ const status =
         "adult"
     else
         "teen";
-``` -->
+```
 
 
 

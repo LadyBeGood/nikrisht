@@ -1,0 +1,27 @@
+
+func frequencies(text) {
+    const words = split(lowercase(text), " ");
+    const frequencies = {};
+
+    loop (words with word) {
+        word = trim(word);
+        
+        if (word == "")
+            skip;
+        
+        
+        frequencies[word] = 
+            if (has(frequencies, word)) 
+                frequencies[word] + 1 
+            else 
+                1;
+    }
+    
+    return frequencies;
+}
+
+write(frequencies("  apple   banana 
+apple guava  orange 
+banana   orange apple 
+"));
+

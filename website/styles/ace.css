@@ -6,3 +6,8 @@
 .ace_scroller.ace_scroll-left::after {
     box-shadow: none !important;
 }
+
+/* Disable highlighting matching brackets */
+.ace_marker-layer .ace_bracket {
+    display: none !important;
+}

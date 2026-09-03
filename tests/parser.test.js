@@ -814,7 +814,7 @@ describe("Expressions", () => {
 
         test("Anonymous", () => {
             const { statements } = parse(
-                "(func(x) x + 1);"
+                "(func(x = 2) x + 1);"
             );
 
             expect(statements[0]).toMatchObject({
@@ -826,8 +826,14 @@ describe("Expressions", () => {
                         name: undefined,
                         parameters: [
                             {
-                                type: "IdentifierExpression",
-                                lexeme: "x",
+                                name: {
+                                    type: "IdentifierExpression",
+                                    lexeme: "x",
+                                },
+                                defaultValue: {
+                                    type: "LiteralExpression",
+                                    value: 2
+                                }
                             },
                         ],
                         body: {
@@ -1223,23 +1229,42 @@ describe("Statement", () => {
 
         test("With parameters, without block", () => {
             const { statements } = parse(
-                "func foo(a, b, c) 42;"
+                "func foo(a, b = a * 2, c) 42;"
             );
 
             expect(statements[0]).toMatchObject({
                 type: "FunctionDeclaration",
                 parameters: [
                     {
-                        type: "IdentifierExpression",
-                        lexeme: "a",
+                        name: {
+                            type: "IdentifierExpression",
+                            lexeme: "a",
+                        },
+                        defaultValue: undefined
                     },
                     {
-                        type: "IdentifierExpression",
-                        lexeme: "b",
+                        name: {
+                            type: "IdentifierExpression",
+                            lexeme: "b",
+                        },
+                        defaultValue: {
+                            type: "BinaryExpression",
+                            left: {
+                                type: "IdentifierExpression",
+                                lexeme: "a",
+                            },
+                            right: {
+                                type: "LiteralExpression",
+                                value: 2
+                            }
+                        }
                     },
                     {
-                        type: "IdentifierExpression",
-                        lexeme: "c",
+                        name: {
+                            type: "IdentifierExpression",
+                            lexeme: "c",
+                        },
+                        defaultValue: undefined
                     },
                 ],
                 body: {

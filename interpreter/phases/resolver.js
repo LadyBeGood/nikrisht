@@ -6,7 +6,7 @@ import "../types.js";
 
 /**
  * 
- * @param {*} interpreter 
+ * @param {Interpreter} interpreter 
  * @returns {Resolver}
  */
 export function createResolver(interpreter) {
@@ -163,6 +163,10 @@ function isPureExpression(expression) {
  * @param {FunctionDeclaration | FunctionExpression} fn 
  */
 function resolveFunction(resolver, fn) {
+    if (fn.type === "FunctionExpression") {
+        beginScope(resolver);
+    }
+
     if (fn.name !== undefined) {
         declare(resolver, fn.name, "Function");
         define(resolver, fn.name);
@@ -172,13 +176,21 @@ function resolveFunction(resolver, fn) {
     beginScope(resolver);
 
     for (const parameter of fn.parameters) {
-        declare(resolver, parameter, "Parameter");
-        define(resolver, parameter);
+        declare(resolver, parameter.name, "Parameter");
+        
+        if (parameter.defaultValue) {
+            resolveExpression(resolver, parameter.defaultValue);
+        }
+
+        define(resolver, parameter.name);
     }
 
     resolveStatement(resolver, fn.body);
 
     endScope(resolver);
+    if (fn.type === "FunctionExpression") {
+        endScope(resolver);
+    }
     resolver.functionDepth--;
 }
 
@@ -243,6 +255,11 @@ function resolveExpression(resolver, expression) {
             resolveExpression(resolver, expression.starting);
             resolveExpression(resolver, expression.ending);
             if (expression.gap !== undefined) resolveExpression(resolver, expression.gap);
+            break;
+        case "ConditionalExpression":
+            resolveExpression(resolver, expression.condition)
+            resolveExpression(resolver, expression.thenBranch)
+            resolveExpression(resolver, expression.elseBranch)
             break;
         case "LiteralExpression":
             // Eat five star, do nothing :)

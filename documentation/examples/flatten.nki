@@ -1,0 +1,48 @@
+
+# Flattens a nested object into a single-level object with dot-path keys
+func flatten(object, prefix = "") {
+    const result = {};
+    const base = prefix;
+
+    loop (object with [key, value]) {
+        var path = if (base == "") key else base + "." + toString(key);
+        
+        if (type(value) == "object" | type(value) == "array") {
+            const nested = flatten(value, path);
+         
+            loop (nested with [x]) {
+                result[x] = nested[x];
+            }
+        } else {
+            result[path] = value;
+        }
+    }
+
+    return result;
+}
+
+write(flatten({
+    "id": "XSR-9402",
+    "user": {
+        "name": {
+            "legal": "Mohit Kumar",
+            "handle": "OsamaBeenLagging",
+        },
+        "email": "gamerBOY99@yahoo.com",
+        "phone": null
+    },
+    "work": {
+        "company": "Logitech",
+        "title": "Systems Lead",
+        "remote": true
+    },
+    "settings": {
+        "theme": "dark",
+        "alerts": {
+            "email": false,
+            "slack": true
+        }
+    },
+    "roles": ["dev", "admin"]
+}));
+

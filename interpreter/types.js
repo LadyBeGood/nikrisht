@@ -250,6 +250,16 @@
  */
 
 /**
+ * @typedef {Object} ConditionalExpression
+ * @property {"ConditionalExpression"} type
+ * @property {Expression} condition
+ * @property {Expression} thenBranch 
+ * @property {Expression} elseBranch 
+ * @property {number} start
+ * @property {number} end
+ */
+
+/**
  * @typedef {Object} MemberExpression
  * @property {"MemberExpression"} type
  * @property {Expression} object 
@@ -279,13 +289,19 @@
  * @typedef {Object} FunctionExpression
  * @property {"FunctionExpression"} type
  * @property {IdentifierExpression | undefined} name
- * @property {IdentifierExpression[]} parameters
+ * @property {Parameter[]} parameters
  * @property {Statement} body
  * @property {number} start
  * @property {number} end
  */
 
-
+/**
+ * @typedef {Object} Parameter
+ * @property {IdentifierExpression} name
+ * @property {Expression | undefined} defaultValue
+ * @property {number} start
+ * @property {number} end
+ */
 
 /**
  * @typedef { LiteralExpression
@@ -296,6 +312,7 @@
  *          | CallExpression
  *          | IdentifierExpression
  *          | AssignmentExpression
+ *          | ConditionalExpression
  *          | MemberExpression
  *          | ArrayExpression
  *          | ObjectExpression
@@ -340,7 +357,7 @@
  * @typedef {Object} FunctionDeclaration
  * @property {"FunctionDeclaration"} type
  * @property {IdentifierExpression} name
- * @property {IdentifierExpression[]} parameters
+ * @property {Parameter[]} parameters
  * @property {Statement} body
  * @property {number} start
  * @property {number} end

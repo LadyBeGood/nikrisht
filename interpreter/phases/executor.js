@@ -196,7 +196,7 @@ function executeLoopStatement(executor, statement) {
  * @param {Expression} expression
  * @returns {_Type}
  */
-function executeExpression(executor, expression) {
+export function executeExpression(executor, expression) {
     switch (expression.type) {
         case "LiteralExpression":
             return expression.value;
@@ -361,7 +361,21 @@ function executeExpression(executor, expression) {
         }
 
         case "FunctionExpression":
-            return create_Function(expression, executor.environment);
+            const previous = executor.environment;
+
+            try {
+                executor.environment = createEnvironment(executor.environment);
+
+                const fn = create_Function(expression, executor.environment);
+    
+                if (expression.name !== undefined) declare(executor.environment, expression.name.lexeme, fn);
+                return fn;
+
+            } finally {
+                executor.environment = previous;
+            }
+
+
 
         case "MemberExpression": {
             const subject = executeExpression(executor, expression.object);
@@ -419,6 +433,20 @@ function executeExpression(executor, expression) {
             }
 
             return right;
+        }
+
+        case "ConditionalExpression": {
+            const condition = executeExpression(executor, expression.condition);
+
+            if (!is_Boolean(condition)) {
+                error(executor.interpreter, expression.condition, `Condition of conditional expression must be a boolean, but got "${type(condition)}"`, "executor");
+            }
+
+            if (condition) {
+                return executeExpression(executor, expression.thenBranch);
+            } else {
+                return executeExpression(executor, expression.elseBranch);
+            }
         }
 
         case "RangeExpression": {

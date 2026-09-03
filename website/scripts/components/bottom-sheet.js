@@ -1,3 +1,9 @@
+
+
+/**
+ * This is an AI generated port of my custom React BottomSheet component from my other project: 
+ * https://github.com/LadyBeGood/youtube/blob/master/src/components/Overlays/BottomSheet.tsx 
+ */
 class BottomSheet extends HTMLElement {
     static get observedAttributes() {
         return [

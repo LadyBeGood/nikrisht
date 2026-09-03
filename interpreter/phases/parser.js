@@ -144,6 +144,45 @@ function parseIdentifierExpression(parser, message = "Expected Identifier") {
     return { type: "IdentifierExpression", lexeme: getLexeme(parser.interpreter, token), start: token.start, end: token.end };
 }
 
+
+
+
+/**
+ * Parses function parameters, including optional default values.
+ * @param {Parser} parser
+ * @returns {Parameter[]}
+ */
+function parseParameters(parser) {
+    consume(parser, "LeftRoundBracket", "Expected '(' after function name");
+
+    const parameters = [];
+
+    if (!check(parser, "RightRoundBracket")) {
+        do {
+            const name = parseIdentifierExpression(parser, "Expected parameter name.");
+            let defaultValue;
+            let end = name.end;
+
+            if (match(parser, "Equal")) {
+                defaultValue = parseExpression(parser);
+                end = defaultValue.end;
+            }
+
+            parameters.push({
+                type: "Parameter",
+                name,
+                defaultValue,
+                start: name.start,
+                end,
+            });
+        } while (match(parser, "Comma") && !check(parser, "RightRoundBracket"));
+    }
+
+    consume(parser, "RightRoundBracket", "Expected ')' after parameters");
+
+    return parameters;
+}
+
 /**
  * 
  * @param {Parser} parser Parser state. 
@@ -216,17 +255,7 @@ function parsePrimaryExpression(parser) {
             name = (parseIdentifierExpression(parser));
         }
 
-        consume(parser, "LeftRoundBracket", "Expected '(' after 'func'.");
-
-        const parameters = [];
-
-        if (!check(parser, "RightRoundBracket")) {
-            do {
-                parameters.push(parseIdentifierExpression(parser, "Expected parameter name."));
-            } while (match(parser, "Comma") && !check(parser, "RightRoundBracket"));
-        }
-
-        consume(parser, "RightRoundBracket", "Expected ')' after parameters.");
+        const parameters = parseParameters(parser);
 
         let body;
 
@@ -479,6 +508,39 @@ function parseLogicalOrExpression(parser) {
 
 
 /**
+ * Parses a conditional expression.
+ * 
+ * ```ebnf
+ * conditional-expression = "if" "(" expression ")" assignment-expression "else" conditional-expression
+ *                         | logical-or-expression
+ * ```
+ * 
+ * @param {Parser} parser Parser state.
+ * @returns {Expression}
+ */
+function parseConditionalExpression(parser) {
+    if (check(parser, "If")) {
+        const start = consume(parser).start;
+
+        consume(parser, "LeftRoundBracket", "Expected '(' after 'if'.");
+        const condition = parseExpression(parser);
+        consume(parser, "RightRoundBracket", "Expected ')' after condition.");
+
+        const thenBranch = parseAssignmentExpression(parser);
+
+        consume(parser, "Else", "Expected 'else' in conditional expression.");
+
+        // Recurse to achieve RIGHT-ASSOCIATIVITY: if (a) b else if (c) d else e
+        const elseBranch = parseConditionalExpression(parser);
+
+        return { type: "ConditionalExpression", condition, thenBranch, elseBranch, start, end: elseBranch.end };
+    }
+
+    return parseLogicalOrExpression(parser);
+}
+
+
+/**
  * Parses an assignment expression.
  * 
  * ```ebnf
@@ -489,7 +551,7 @@ function parseLogicalOrExpression(parser) {
  * @returns {Expression}
  */
 function parseAssignmentExpression(parser) {
-    const expression = parseLogicalOrExpression(parser)
+    const expression = parseConditionalExpression(parser)
 
     if (match(parser, "Equal")) {
         const right = parseAssignmentExpression(parser);
@@ -812,16 +874,7 @@ function parseFunctionDeclaration(parser) {
     const start = consume(parser).start;
     const name = parseIdentifierExpression(parser, "Expected function name.");
 
-    consume(parser, "LeftRoundBracket", "Expected '(' after function name");
-
-    const parameters = [];
-    if (!check(parser, "RightRoundBracket")) {
-        do {
-            parameters.push(parseIdentifierExpression(parser, "Expected parameter name."));
-        } while (match(parser, "Comma") && !check(parser, "RightRoundBracket"));
-    }
-
-    consume(parser, "RightRoundBracket", "Expected ')' after parameters");
+    const parameters = parseParameters(parser);
 
     let body;
 
