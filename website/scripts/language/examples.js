@@ -1,7 +1,7 @@
 
 import { elements } from "../elements.js";
 
-const exampleFiles = ["prime", "frequencies", "fibonacci", "merge-sort", "flatten"];
+const exampleFiles = ["prime-finder", "frequencies", "fibonacci", "merge-sort", "flatten"];
 
 export const examples = {}
 
