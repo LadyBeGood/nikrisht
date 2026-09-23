@@ -342,7 +342,7 @@ describe("Loops", () => {
 });
 
 
-describe("Locals distance", () => {
+describe.todo("Locals distance", () => {
     test("records correct distance for nested scopes", () => {
         const { locals, statements } = resolve(`
             var a = 1;

@@ -200,6 +200,14 @@ export function executeExpression(executor, expression) {
     switch (expression.type) {
         case "LiteralExpression":
             return expression.value;
+        
+        case "TemplateLiteralExpression":
+            let accumulate = "";
+            for (const element of expression.elements) {
+                const value = executeExpression(executor, element);
+                accumulate += stringify(value);
+            }
+            return accumulate;
 
         case "GroupingExpression":
             return executeExpression(executor, expression.expression);

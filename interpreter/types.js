@@ -105,6 +105,9 @@
  *          | "LessThanEqual"
  *          | "MoreThanEqual"
  *          | "StringLiteral"
+ *          | "TemplateLiteralStart"
+ *          | "TemplateLiteralMiddle"
+ *          | "TemplateLiteralEnd"
  *          | "NumericLiteral"
  *          | "Identifier"
  *          | "Var"
@@ -174,6 +177,15 @@
  * @property {number} start
  * @property {number} end
  */
+
+/**
+ * @typedef {object} TemplateLiteralExpression
+ * @property {"TemplateLiteralExpression"} type
+ * @property {Expression[]} elements 
+ * @property {number} start
+ * @property {number} end
+ */
+
 
 /**
  * @typedef {Object} UnaryExpression
@@ -305,6 +317,7 @@
 
 /**
  * @typedef { LiteralExpression
+ *          | TemplateLiteralExpression
  *          | UnaryExpression
  *          | RangeExpression
  *          | GroupingExpression

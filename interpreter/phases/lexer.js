@@ -171,24 +171,101 @@ function error(lexer, message) {
     diagnosticError(lexer.interpreter, { start: lexer.start, end: lexer.current }, message, "lexer");
 }
 
+
+
+/**
+ * Lexes the expression inside a `{ ... }` interpolation.
+ * Stops when it sees the matching closing `}` at brace depth 0.
+ * 
+ * @param {Lexer} lexer
+ */
+function lexInterpolationExpression(lexer) {
+    let braceDepth = 0;
+
+    while (!isAtEnd(lexer)) {
+        const character = peek(lexer);
+
+        // Track nested braces so that `{ a + { b } }` works correctly
+        if (character === "{") {
+            braceDepth++;
+        } else if (character === "}") {
+            if (braceDepth === 0) {
+                return;
+            }
+            braceDepth--;
+        }
+
+        lexer.start = lexer.current;
+        lexToken(lexer);
+    }
+
+    // If we reach here we ran out of source while still inside the expression
+    error(lexer, "Unterminated expression in string interpolation.");
+}
+
 /**
  * 
  * @param {Lexer} lexer Lexer state 
  */
 function lexString(lexer) {
-    while (!isAtEnd(lexer) && !check(lexer, '"')) {
+    // syntax example: "aaa {bbb} ccc {ddd + uppercase("zzz")} eee"
+
+    let hasInterpolation = false;
+
+    while (true) {
+        if (isAtEnd(lexer)) {
+            error(lexer, "Unterminated string.");
+        }
+
+        // End of the whole string
+        if (match(lexer, '"')) {
+            if (hasInterpolation) {
+                addToken(lexer, "TemplateLiteralEnd");
+            } else {
+                addToken(lexer, "StringLiteral");
+            }
+
+            return;
+        }
+
+        // Escape sequence
+        if (match(lexer, "\\")) {
+            if (isAtEnd(lexer)) {
+                error(lexer, "Unterminated escape sequence in string.");
+            }
+
+            // Just consume the escaped character.
+            advance(lexer);
+            continue;
+        }
+
+        // Start of an interpolation
+        if (match(lexer, "{")) {
+            if (hasInterpolation) {
+                addToken(lexer, "TemplateLiteralMiddle");
+            } else {
+                addToken(lexer, "TemplateLiteralStart");
+                hasInterpolation = true;
+            }
+
+            lexInterpolationExpression(lexer);
+
+            if (peek(lexer) !== "}") {
+                error(lexer, 'Expected "}" to close string interpolation.');
+            }
+
+            // advance(lexer); // "}"
+
+            lexer.start = lexer.current;
+            continue;
+        }
+
+        // Normal character 
         advance(lexer);
     }
-
-    if (isAtEnd(lexer)) {
-        error(lexer, "Unterminated string.");
-    }
-
-    // consume closing quote
-    advance(lexer)
-
-    addToken(lexer, "StringLiteral")
 }
+
+
 
 /**
  * 
@@ -396,6 +473,7 @@ export function lex(lexer) {
         }
     }
 
+    lexer.start = lexer.current;
     lexer.interpreter.tokens.push({ type: "EndOfFile", start: lexer.start, end: lexer.current });
 }
 

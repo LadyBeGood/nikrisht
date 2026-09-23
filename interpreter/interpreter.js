@@ -68,7 +68,7 @@ export function interpret(interpreter) {
     const resolver = createResolver(interpreter);
     resolve(resolver);
     if (failed(interpreter)) return;
-
+    
     /* Executing */
     const executor = createExecutor(interpreter);
     execute(executor);

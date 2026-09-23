@@ -5,7 +5,7 @@ func flatten(object, prefix = "") {
     const base = prefix;
 
     loop (object with [key, value]) {
-        var path = if (base == "") key else base + "." + toString(key);
+        var path = if (base == "") key else "{base}.{key}";
         
         if (type(value) == "object" | type(value) == "array") {
             const nested = flatten(value, path);

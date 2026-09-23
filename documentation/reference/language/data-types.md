@@ -60,6 +60,14 @@ write("My name is " + name + ", I am " + toString(age) + " years old.");
      # My name is Jane, I am 20 years old.
 ```
 
+Instead of joining strings with `+`, you can embed expressions directly inside a string using `{`...`}`.
+```
+write("My name is {name}, I am {age} years old."); 
+     # My name is Jane, I am 20 years old.
+     # Note how age, a number, was automatically converted to string for embedding.
+```
+
+
 A string is represented internally a sequence of UTF-16 code units, identical to JavaScript strings, and thus share the same quirks.
 ```
 write(count("😼"));       # 2

@@ -134,6 +134,7 @@ function resolveLocal(resolver, node, name) {
 function isPureExpression(expression) {
     switch (expression.type) {
         case "LiteralExpression":
+        case "TemplateLiteralExpression":
         case "IdentifierExpression":
         case "ArrayExpression":
         case "ObjectExpression":
@@ -260,6 +261,11 @@ function resolveExpression(resolver, expression) {
             resolveExpression(resolver, expression.condition)
             resolveExpression(resolver, expression.thenBranch)
             resolveExpression(resolver, expression.elseBranch)
+            break;
+        case "TemplateLiteralExpression":
+            for (const element of expression.elements) {
+                resolveExpression(resolver, element);
+            }
             break;
         case "LiteralExpression":
             // Eat five star, do nothing :)

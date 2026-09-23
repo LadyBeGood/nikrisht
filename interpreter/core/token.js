@@ -19,6 +19,9 @@ export function getLexeme(interpreter, identifier) {
 export function getLiteral(interpreter, token) {
     switch (token.type) {
         case "StringLiteral": 
+        case "TemplateLiteralStart":
+        case "TemplateLiteralMiddle":
+        case "TemplateLiteralEnd":
             return interpreter.source.slice(token.start + 1, token.end - 1);
         case "NumericLiteral":
             return parseFloat(interpreter.source.slice(token.start, token.end));

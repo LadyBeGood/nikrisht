@@ -205,6 +205,51 @@ function parsePrimaryExpression(parser) {
         const token = consume(parser);
         return { type: "LiteralExpression", value: getLiteral(parser.interpreter, token), start: token.start, end: token.end };
     }
+    else if (check(parser, "TemplateLiteralStart")) {
+        const start = peek(parser).start;
+        /** @type {Expression[]} */
+        const elements = [];
+
+        /**
+         * 
+         * @returns {Expression}
+         */
+        function parseTemplateStringPart() {
+            const token = consume(parser);
+
+            return {
+                type: "LiteralExpression",
+                value: getLiteral(parser.interpreter, token),
+                start: token.start,
+                end: token.end,
+            }
+        }
+
+        elements.push(parseTemplateStringPart());
+
+        while (true) {
+            if (isAtEnd(parser)) {
+                throw new ImplementationError(`Template literal didnt produce a "TemplateLiteralEnd" token`);
+            }
+
+            if (peek(parser).type === "TemplateLiteralEnd") {
+                break;
+            }
+
+
+            if (peek(parser).type === "TemplateLiteralMiddle") {
+                elements.push(parseTemplateStringPart());
+            } else {
+                elements.push(parseExpression(parser));
+            }
+        }
+
+        const end = peek(parser).end;
+
+        elements.push(parseTemplateStringPart());
+
+        return { type: "TemplateLiteralExpression", elements, start, end }
+    }
     else if (check(parser, "Identifier")) {
         return parseIdentifierExpression(parser);
     }
