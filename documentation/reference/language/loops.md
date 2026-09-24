@@ -69,8 +69,8 @@ loop ([567, "orange"]) {
     write("hello");
 
     # loops 2 times 
-    # because there are 2 entries inside the structure:
-    # `id = 567` and `"orange"`
+    # because there are 2 values inside the array:
+    # 567 and "orange"
 
     # hello
     # hello
@@ -98,7 +98,7 @@ loop (func () write("Hello, World")) {
 }
 ```
 
-Nikrisht provides a neat literal syntax for creating sunch ranges:
+Nikrisht provides a neat literal syntax for creating closure-based range functions:
 ```
 loop (1..9..3) {
     write("hello");
@@ -111,8 +111,10 @@ loop (1..9..3) {
     # "hello"
     # "hello"
 }
+```
 
-# By default, gap is equal to 1 and end is inclusive. If you want to exclude the end, use `..<` or `..>` instead of `..`
+By default, gap is equal to 1 and end is inclusive. If you want to exclude the end, use `..<` or `..>` instead of `..`
+```
 loop (1..<4) {
     write("hello");
 
@@ -175,7 +177,7 @@ loop (fruits with fruit) {
 }
 
 loop (fruits with [i, fruit]) {
-    write(toString(i) + ". I love " + fruit);
+    write("{i}. I love {fruit}");
     
     # 1. I love apple
     # 2. I love mango 
@@ -183,7 +185,7 @@ loop (fruits with [i, fruit]) {
 }
 
 loop ("hi" with [index, character]) {
-    write("The character at position " + toString(index) + " is " + character);
+    write("The character at position {index} is {character}");
 
     # The character at position 1 is h
     # The character at position 2 is i
