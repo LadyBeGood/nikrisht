@@ -142,7 +142,7 @@ write(9999999999999999);         # 10000000000000000
 #### Boolean
 Boolean literals are represented by the keywords `true` and `false`.
 
- There are no *truthy* or *falsy* values.
+There are no *truthy* or *falsy* values.
 
 
 ...

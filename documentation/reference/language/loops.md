@@ -51,7 +51,7 @@ loop (5) {
 }
 ```
 
-Loop keyword followed by a string or structure loops `count iterable` times:
+Loop keyword followed by a string, array or an object loops `count(iterable)` times:
 ```
 loop ("nki") {
     write("hello");

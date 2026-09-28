@@ -10,12 +10,14 @@ Regular comments begin with `#` and continue until the end of the line.
 ```
 
 #### Block Comments
-Block comments begin with `#*` and end with `*#`.
+Block comments begin with `#*` and end with `*#`. 
 
 ```
 #* This is a block comment.
    It can span multiple lines. *#
 
 const name = #* They can also be used inline *# "Nikrisht";
+
+#* They #* can be *# nested too *#
 ```
 
