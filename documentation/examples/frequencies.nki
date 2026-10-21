@@ -9,7 +9,6 @@ func frequencies(text) {
         if (word == "")
             skip;
         
-        
         frequencies[word] = 
             if (has(frequencies, word)) 
                 frequencies[word] + 1 
