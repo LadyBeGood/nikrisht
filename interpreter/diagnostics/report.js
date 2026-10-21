@@ -39,9 +39,8 @@ function getPhaseError(phase) {
             return ResolvingError;
         case "executor": 
             return ExecutionError;
-
         default: 
-            throw new ImplementationError("Invalid error code. Error code must be between 1000 and 4999 (both inclusive).");
+            throw new ImplementationError("Invalid phase name.");
     }
 }
 

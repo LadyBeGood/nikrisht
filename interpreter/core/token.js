@@ -1,5 +1,7 @@
 // @ts-check
 
+import { ImplementationError } from "../diagnostics/classes.js";
+
 /**
  * 
  * @param {Interpreter} interpreter 
@@ -28,9 +30,9 @@ export function getLiteral(interpreter, token) {
         case "Null":
         case "True":
         case "False":
-            throw "Bro these are keywords, use if else directly";
+            throw new ImplementationError("Bro these are keywords, use if else directly.");
         default:
-            throw 0;
+            throw new ImplementationError("Unknown literal type.");
     }
 }
 

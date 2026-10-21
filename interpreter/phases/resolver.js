@@ -153,6 +153,8 @@ function isPureExpression(expression) {
         case "AssignmentExpression":
         case "CallExpression":
             return false;
+        case "ConditionalExpression":
+            return isPureExpression(expression.condition) && isPureExpression(expression.thenBranch) && isPureExpression(expression.elseBranch);
         default:
             throw new ImplementationError("Unknown expression type.");
     }
